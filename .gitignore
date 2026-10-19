@@ -1,0 +1,18 @@
+node_modules/
+build/
+dist/
+src-tauri/target/
+coverage/
+.DS_Store
+*.log
+.env*
+!.env.example
+
+# Server credentials — never commit Firebase service accounts or private keys.
+service-account*.json
+serviceAccount*.json
+firebase-service-account*.json
+*-firebase-adminsdk-*.json
+*.pem
+*.p12
+*.key

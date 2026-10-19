@@ -1,6 +1,4 @@
 import express, { Request, Response, NextFunction } from 'express';
-import path from 'path';
-import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
 import agoraTokenPkg from 'agora-token';
 const { RtcTokenBuilder, RtcRole } = agoraTokenPkg;
@@ -8,9 +6,6 @@ import { cert, getApps, initializeApp } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
 
 dotenv.config();
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
@@ -87,15 +82,17 @@ const authenticateFirebaseUser = async (req: AuthenticatedRequest, res: Response
 // API ROUTES
 // -----------------------------------------------------------------------------
 
-// System Health Check
-app.get('/api/health', (_req: Request, res: Response) => {
+// Render health check. This endpoint has no secrets and needs no authentication.
+app.get('/healthz', (_req: Request, res: Response) => {
   res.json({
     status: 'ok',
-    product: 'LIGHT',
-    parentBrand: 'DIAMOND',
-    timestamp: Date.now(),
-    agoraConfigured: Boolean(process.env.AGORA_APP_CERTIFICATE),
+    service: 'light-voice-api',
   });
+});
+
+// Kept for local diagnostics and backwards compatibility.
+app.get('/api/health', (_req: Request, res: Response) => {
+  res.json({ status: 'ok', service: 'light-voice-api' });
 });
 
 // Agora Configuration Status Check (Does NOT reveal secret certificate)
@@ -182,29 +179,10 @@ app.post('/api/agora/token', authenticateFirebaseUser, async (req: Authenticated
   }
 });
 
-// -----------------------------------------------------------------------------
-// VITE DEV SERVER / PRODUCTION STATIC SERVING
-// -----------------------------------------------------------------------------
-async function startServer() {
-  if (process.env.NODE_ENV === 'production') {
-    app.use(express.static(path.resolve(__dirname, 'dist')));
-    app.get('*', (_req: Request, res: Response) => {
-      res.sendFile(path.resolve(__dirname, 'dist', 'index.html'));
-    });
-  } else {
-    const { createServer: createViteServer } = await import('vite');
-    const vite = await createViteServer({
-      server: { middlewareMode: true },
-      appType: 'spa',
-    });
-    app.use(vite.middlewares);
-  }
-
-  app.listen(Number(PORT), '0.0.0.0', () => {
-    console.log(`[LIGHT by DIAMOND] Server listening at http://0.0.0.0:${PORT}`);
+function startServer() {
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`[LIGHT Voice API] Listening on port ${PORT}`);
   });
 }
 
-startServer().catch((err) => {
-  console.error('[LIGHT Server] Failed to start server:', err);
-});
+startServer();
