@@ -1,0 +1,5 @@
+# LIGHT by DIAMOND — Logo Placement
+To replace the placeholder logo with your custom logo:
+1. Save your logo as: /public/logo.png
+2. The BrandLogo component (/src/components/brand/BrandLogo.tsx) will automatically display it.
+No code edits are required!

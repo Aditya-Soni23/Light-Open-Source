@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LIGHT by DIAMOND — Your friends. Your game. One click away.</title>
+    <meta name="description" content="LIGHT by DIAMOND — Social gaming communication companion with real-time voice rooms, direct chat, and LIGHT Mini." />
+    <meta property="og:title" content="LIGHT by DIAMOND — Your friends. Your game. One click away." />
+    <meta property="og:description" content="Social gaming communication companion with real-time voice rooms, direct chat, and LIGHT Mini." />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <script>
+      (() => {
+        try {
+          const saved = JSON.parse(localStorage.getItem('light_app_personalization_v2') || '{}');
+          const theme = saved.theme === 'system'
+            ? (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+            : (saved.theme || 'light');
+          document.documentElement.classList.toggle('dark', theme === 'dark');
+          document.documentElement.dataset.theme = theme;
+          document.documentElement.dataset.accent = saved.accent || 'blue';
+          document.documentElement.style.colorScheme = theme;
+        } catch (_) {}
+      })();
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+
