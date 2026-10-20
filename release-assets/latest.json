@@ -1,10 +1,11 @@
 {
-  "version": "0.1.1",
-  "notes": "Updater test release for LIGHT desktop.",
+  "version": "0.1.3",
+  "notes": "LIGHT v0.1.3 release.",
+  "pub_date": "2026-10-20T15:22:06Z",
   "platforms": {
     "windows-x86_64": {
-      "url": "https://github.com/Aditya-Soni23/light-desktop/releases/download/v0.1.1/LIGHT_0.1.1_x64-setup.exe",
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSbkl3Ymc4djlId2hmaWEwU1Z1TXJQQ0NwdjNEMjRMUy81NklFS0MvMUdIb0IrTXZtV0xYa0dHOGlaNjRKUWdlTlZZbVVONkhZUGtHQ2FtdGtYZ1RRblRKYSttaWgzRGdzPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkyNDM0MjU3CWZpbGU6TElHSFRfMC4xLjFfeDY0LXNldHVwLmV4ZQl2ZXJzaW9uOjAuMS4xCnhDS2lOUnlaUWczWnhzV2p2Y0J2WURwc29DRG95aFNzYkU3cDlHUTZFVitoOEloNnpjSFU3TDB1OTdJOVVTVjFvRlhzMmlYcitKcHk5Y0liRDVqQUN3PT0K"
+      "url": "https://github.com/Aditya-Soni23/light-desktop/releases/download/v0.1.3/LIGHT_0.1.3_x64-setup.exe",
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSbkl3Ymc4djlId3ZQOVZ6dHpvS2hZRWFXUU5RazRTeW5GZ0N5RXVSN1pCMU1ISVdNS3p5T0t3TW1QM3dWbmlZdnBtNzkzZ2pyV3kvQ09wSUhsa29mSkovQWFNUUhzNWdvPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkyNTA5NTk0CWZpbGU6TElHSFRfMC4xLjNfeDY0LXNldHVwLmV4ZQl2ZXJzaW9uOjAuMS4zCmhMLzdQWUI5aHA5enl2MGxCMlFMUFYxdkN4QWZVVDZGK01Ga2dOem03d09CWGZZVzl1OG9UK1l5bE1GLzdZdy9vRTMrcWtESWNISGtKQisvbzh4a0NBPT0K"
     }
   }
 }

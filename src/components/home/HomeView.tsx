@@ -99,12 +99,6 @@ export const HomeView: React.FC<HomeViewProps> = ({
             <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
               Gaming Groups ({groups.length})
             </h3>
-            <button
-              onClick={onOpenCreateGroupModal}
-              className="text-xs text-sky-600 dark:text-sky-400 hover:underline font-medium cursor-pointer"
-            >
-              + Create Group
-            </button>
           </div>
 
           {groups.length === 0 ? (
@@ -120,12 +114,6 @@ export const HomeView: React.FC<HomeViewProps> = ({
                   Form a squad with your friends to connect to shared persistent voice channels with one click.
                 </p>
               </div>
-              <button
-                onClick={onOpenCreateGroupModal}
-                className="px-3.5 py-1.5 rounded-xl bg-sky-500 text-white font-medium text-xs hover:bg-sky-600 transition-colors cursor-pointer"
-              >
-                Create Squad
-              </button>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

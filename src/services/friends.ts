@@ -1,13 +1,10 @@
 import {
   ref,
   get,
-  set,
   update,
   remove,
   onValue,
-  query,
-  orderByChild,
-  equalTo
+  runTransaction
 } from 'firebase/database';
 import { rtdb } from './firebase';
 import { FriendRequest, FriendRelation, UserProfile } from '../types';
@@ -48,11 +45,6 @@ export const sendFriendRequestByUsername = async (
 
   // Check if there is already an active pending request between them
   const requestId1 = `${currentUser.uid}__${targetProfile.uid}`;
-  const req1Snap = await get(ref(rtdb, `friend_requests/${requestId1}`));
-  if (req1Snap.exists() && req1Snap.val()?.status === 'pending') {
-    throw new Error(`You have already sent a pending friend request to ${targetProfile.displayName}.`);
-  }
-
   // Check if target already sent a request to current user
   const requestId2 = `${targetProfile.uid}__${currentUser.uid}`;
   const req2Snap = await get(ref(rtdb, `friend_requests/${requestId2}`));
@@ -74,7 +66,15 @@ export const sendFriendRequestByUsername = async (
     createdAt: now,
   };
 
-  await set(ref(rtdb, `friend_requests/${requestId1}`), newRequest);
+  // The deterministic id plus a transaction makes repeat clicks idempotent
+  // and closes the race between the pre-flight checks and the write.
+  const result = await runTransaction(ref(rtdb, `friend_requests/${requestId1}`), (existing) => {
+    if (existing?.status === 'pending') return;
+    return newRequest;
+  });
+  if (!result.committed) {
+    throw new Error(`You have already sent a pending friend request to ${targetProfile.displayName}.`);
+  }
   return { success: true, message: `Friend request sent to @${targetProfile.username}.` };
 };
 
@@ -86,7 +86,16 @@ export const acceptFriendRequest = async (
   currentUid: string,
   otherUid: string
 ): Promise<void> => {
-  if (!rtdb) return;
+  if (!rtdb) throw new Error('Realtime Database is not connected.');
+
+  const requestSnapshot = await get(ref(rtdb, `friend_requests/${requestId}`));
+  const request = requestSnapshot.val() as FriendRequest | null;
+  if (!request || request.status !== 'pending') {
+    throw new Error('This friend request is no longer pending.');
+  }
+  if (request.receiverUid !== currentUid || request.senderUid !== otherUid) {
+    throw new Error('You can only accept a request sent to your account.');
+  }
 
   const pairId = getFriendshipPairId(currentUid, otherUid);
   const now = Date.now();
@@ -112,7 +121,7 @@ export const acceptFriendRequest = async (
  * Decline an incoming friend request.
  */
 export const declineFriendRequest = async (requestId: string): Promise<void> => {
-  if (!rtdb) return;
+  if (!rtdb) throw new Error('Realtime Database is not connected.');
   await remove(ref(rtdb, `friend_requests/${requestId}`));
 };
 
@@ -120,7 +129,7 @@ export const declineFriendRequest = async (requestId: string): Promise<void> => 
  * Cancel an outgoing friend request.
  */
 export const cancelFriendRequest = async (requestId: string): Promise<void> => {
-  if (!rtdb) return;
+  if (!rtdb) throw new Error('Realtime Database is not connected.');
   await remove(ref(rtdb, `friend_requests/${requestId}`));
 };
 
@@ -128,7 +137,7 @@ export const cancelFriendRequest = async (requestId: string): Promise<void> => {
  * Remove a friend with mutual confirmation.
  */
 export const removeFriend = async (currentUid: string, friendUid: string): Promise<void> => {
-  if (!rtdb) return;
+  if (!rtdb) throw new Error('Realtime Database is not connected.');
 
   const pairId = getFriendshipPairId(currentUid, friendUid);
   const updates: Record<string, any> = {};

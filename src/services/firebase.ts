@@ -1,7 +1,6 @@
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
 import {
   getAuth,
-  GoogleAuthProvider,
   Auth,
   browserLocalPersistence,
   indexedDBLocalPersistence,
@@ -53,9 +52,6 @@ export const authPersistenceReady = setPersistence(auth, indexedDBLocalPersisten
       console.info('[FirebaseAuth] Persistence ready.', { backend: 'localstorage', ...getAuthRuntime() });
     });
   });
-
-export const googleAuthProvider = new GoogleAuthProvider();
-googleAuthProvider.setCustomParameters({ prompt: 'select_account' });
 
 export const db: Firestore = getFirestore(app);
 

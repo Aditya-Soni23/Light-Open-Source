@@ -1,0 +1,9 @@
+import React, { useState } from 'react';
+import { AlertCircle } from 'lucide-react';
+
+export const LogoutConfirmModal: React.FC<{ isOpen: boolean; onClose: () => void; onConfirm: () => Promise<void> }> = ({ isOpen, onClose, onConfirm }) => {
+  const [loading, setLoading] = useState(false); const [error, setError] = useState('');
+  if (!isOpen) return null;
+  const confirm = async () => { if (loading) return; setLoading(true); setError(''); try { await onConfirm(); } catch (reason: any) { setError(reason?.message || 'Could not log out. Please try again.'); setLoading(false); } };
+  return <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"><div className="w-full max-w-md light-surface light-divider border rounded-2xl p-6 shadow-2xl space-y-4"><h2 className="text-base font-semibold text-slate-900 dark:text-white">Are you sure you want to log out?</h2><p className="text-xs leading-relaxed text-slate-600 dark:text-slate-400">You will lose access to this guest account when you log out. Are you sure you want to continue? You may need to create a new guest account to use LIGHT again.</p><p className="text-[11px] text-slate-400">Logging out does not delete existing database records, but this guest account may be inaccessible afterwards.</p>{error && <p className="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/40 text-xs text-rose-700 dark:text-rose-300 flex gap-2"><AlertCircle className="w-4 h-4 shrink-0" />{error}</p>}<div className="flex justify-end gap-2 pt-2"><button disabled={loading} onClick={onClose} className="px-3.5 py-2 text-xs font-medium text-slate-600 dark:text-slate-300 disabled:opacity-50">Cancel</button><button disabled={loading} onClick={() => void confirm()} className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold disabled:opacity-50">{loading ? 'Logging out...' : 'Confirm Log Out'}</button></div></div></div>;
+};

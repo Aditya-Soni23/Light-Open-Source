@@ -163,8 +163,6 @@
 input, textarea, select { color: var(--text-primary); }
 ::selection { background: var(--accent-subtle); }
 
-/* Reduced Motion Preference Enforcement */
-[data-motion="reduced"] *,
 @media (prefers-reduced-motion: reduce) {
   *, ::before, ::after {
     animation-duration: 0.01ms !important;
@@ -172,11 +170,6 @@ input, textarea, select { color: var(--text-primary); }
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
-}
-
-/* Compact Density adjustments */
-[data-density="compact"] .app-density-padding {
-  padding: 0.75rem !important;
 }
 
 /* Restrained scrollbar */

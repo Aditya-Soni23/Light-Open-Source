@@ -1,8 +1,5 @@
 import {
-  signInWithRedirect,
-  getRedirectResult,
   signInAnonymously,
-  linkWithRedirect,
   updateProfile,
   signOut as firebaseSignOut,
   onAuthStateChanged,
@@ -17,7 +14,7 @@ import {
   remove,
   runTransaction
 } from 'firebase/database';
-import { auth, authPersistenceReady, googleAuthProvider, rtdb } from './firebase';
+import { auth, authPersistenceReady, rtdb } from './firebase';
 import { UserProfile } from '../types';
 
 const getAuthRuntime = () => ({
@@ -25,14 +22,6 @@ const getAuthRuntime = () => ({
   hostname: typeof window === 'undefined' ? 'unknown' : window.location.hostname,
   isTauri: typeof window !== 'undefined' && Boolean((window as any).__TAURI_INTERNALS__),
 });
-
-export const logGoogleAuthFailure = (error: unknown) => {
-  const firebaseError = error as { code?: unknown } | null;
-  console.warn('[GoogleAuth] Sign-in did not produce a Firebase session.', {
-    code: typeof firebaseError?.code === 'string' ? firebaseError.code : 'unknown',
-    ...getAuthRuntime(),
-  });
-};
 
 let profileCreationInProgress: Promise<void> | null = null;
 
@@ -53,6 +42,7 @@ export const waitForPendingProfileCreation = async (): Promise<void> => {
 export const sanitizeUsername = (raw: string): string => {
   return raw.toLowerCase().trim().replace(/[^a-z0-9_]/g, '').slice(0, 20);
 };
+
 
 export const isValidUsername = (username: string): boolean => {
   return /^[a-z0-9_]{3,20}$/.test(username);
@@ -206,84 +196,11 @@ export const getUserByUsername = async (username: string): Promise<UserProfile |
     if (!uid) return null;
     return getUserProfile(uid);
   } catch (err) {
+    // A permission/network failure is not an unknown username. Preserve it so
+    // the caller can present a meaningful error instead of a false "not found".
     console.warn('[RTDB Auth] getUserByUsername error:', err);
-    return null;
+    throw err;
   }
-};
-
-/** Create the first profile for a verified Google user, if required. */
-const createGoogleProfile = async (user: User): Promise<UserProfile | null> => {
-  let finishProfileCreation!: () => void;
-  profileCreationInProgress = new Promise((resolve) => {
-    finishProfileCreation = resolve;
-  });
-  try {
-    let profile = await getUserProfile(user.uid);
-
-    if (!profile) {
-      const rawName = user.displayName || user.email?.split('@')[0] || 'gamer';
-      let baseUsername = sanitizeUsername(rawName) || 'gamer';
-      if (baseUsername.length < 3) baseUsername = `${baseUsername}player`;
-      let candidate = baseUsername.slice(0, 15);
-
-      const available = await isUsernameAvailable(candidate);
-      if (!available) {
-        candidate = `${candidate.slice(0, 14)}_${Math.floor(1000 + Math.random() * 9000)}`;
-      }
-
-      profile = await reserveUsernameAndSaveProfile(
-        user.uid,
-        candidate,
-        user.displayName || 'Gamer',
-        user.email,
-        user.photoURL,
-        false
-      );
-    } else if (profile.isGuest && rtdb) {
-      // This redirect may be an account-link operation. Keep the member's
-      // chosen display name and handle, while making that same profile a
-      // permanent Google-backed account.
-      await update(ref(rtdb, `users/${user.uid}`), {
-        email: user.email || null,
-        isGuest: false,
-        updatedAt: Date.now(),
-      });
-      profile = { ...profile, email: user.email || null, isGuest: false, updatedAt: Date.now() };
-    }
-
-    return profile;
-  } finally {
-    finishProfileCreation();
-    profileCreationInProgress = null;
-  }
-};
-
-/** Complete a same-window Google redirect after the app is restored. */
-export const finishGoogleRedirectSignIn = async (): Promise<UserProfile | null> => {
-  await authPersistenceReady;
-  console.info('[GoogleAuth] Resolving redirect result.', getAuthRuntime());
-  try {
-    const result = await getRedirectResult(auth);
-    console.info('[GoogleAuth] Redirect result resolved.', {
-      hasResult: Boolean(result),
-      signedIn: Boolean(auth.currentUser),
-      ...getAuthRuntime(),
-    });
-    return result ? createGoogleProfile(result.user) : null;
-  } catch (error) {
-    logGoogleAuthFailure(error);
-    throw error;
-  }
-};
-
-export const signInWithGoogle = async (): Promise<{ user: User; profile: UserProfile | null }> => {
-  await authPersistenceReady;
-  // Always use Firebase's redirect flow. It navigates the current app webview
-  // (or browser tab) to Google's approved page and never asks the browser to
-  // create a popup window.
-  console.info('[GoogleAuth] Starting same-window redirect.', getAuthRuntime());
-  await signInWithRedirect(auth, googleAuthProvider);
-  return new Promise<never>(() => {});
 };
 
 export const signInAsGuest = async (
@@ -337,17 +254,6 @@ export const signInAsGuest = async (
 };
 
 /**
- * Upgrade Guest account to Google account without losing profile data.
- */
-export const linkGuestToGoogle = async (currentUser: User): Promise<UserProfile> => {
-  await authPersistenceReady;
-  // Linking uses the same in-app/tab redirect as first-time Google sign-in.
-  // getRedirectResult() restores the Firebase user after navigation.
-  await linkWithRedirect(currentUser, googleAuthProvider);
-  return new Promise<never>(() => {});
-};
-
-/**
  * Sign Out
  */
 export const signOut = async (): Promise<void> => {
@@ -355,6 +261,7 @@ export const signOut = async (): Promise<void> => {
     await firebaseSignOut(auth);
   } catch (err) {
     console.warn('[Auth] Sign out note:', err);
+    throw new Error('LIGHT could not log you out. Please check your connection and try again.');
   }
 };
 

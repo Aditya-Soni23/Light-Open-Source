@@ -1,6 +1,6 @@
 [package]
 name = "light"
-version = "0.1.1"
+version = "0.1.3"
 description = "LIGHT by DIAMOND"
 authors = ["DIAMOND"]
 edition = "2021"

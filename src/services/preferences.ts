@@ -7,8 +7,6 @@
 
 export type AppTheme = 'light' | 'dark' | 'system';
 export type AccentColor = 'blue' | 'indigo' | 'emerald' | 'amber' | 'rose' | 'neutral';
-export type InterfaceDensity = 'comfortable' | 'compact';
-export type MotionPreference = 'normal' | 'subtle' | 'reduced';
 export type XtremeSmallShape = 'square' | 'rounded' | 'circle';
 export type XtremeSmallHover = 'scale' | 'outline' | 'none';
 export type XtremeSmallClickAction = 'companion' | 'full';
@@ -36,8 +34,6 @@ export interface XtremeSmallPreferences {
 export interface UserPersonalizationSettings {
   theme: AppTheme;
   accent: AccentColor;
-  density: InterfaceDensity;
-  motion: MotionPreference;
   sidebarLabels: boolean;
   companion: CompanionPreferences;
   xtremeSmall: XtremeSmallPreferences;
@@ -48,8 +44,6 @@ const STORAGE_KEY = 'light_app_personalization_v2';
 export const DEFAULT_PREFERENCES: UserPersonalizationSettings = {
   theme: 'light',
   accent: 'blue',
-  density: 'comfortable',
-  motion: 'normal',
   sidebarLabels: false,
   companion: {
     layout: 'compact',
@@ -80,9 +74,12 @@ export const getPreferences = (): UserPersonalizationSettings => {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return DEFAULT_PREFERENCES;
     const parsed = JSON.parse(raw);
+    // Retire legacy density/motion choices when an older preference record is
+    // loaded; they no longer have a settings control or runtime behavior.
+    const { density: _density, motion: _motion, ...persisted } = parsed;
     return {
       ...DEFAULT_PREFERENCES,
-      ...parsed,
+      ...persisted,
       companion: {
         ...DEFAULT_PREFERENCES.companion,
         ...(parsed.companion || {}),
@@ -160,8 +157,6 @@ export const applyThemeToDOM = (prefs: UserPersonalizationSettings): void => {
 
   // Accent attribute
   root.setAttribute('data-accent', prefs.accent);
-  root.setAttribute('data-density', prefs.density);
-  root.setAttribute('data-motion', prefs.motion);
 };
 
 // System color-scheme watcher

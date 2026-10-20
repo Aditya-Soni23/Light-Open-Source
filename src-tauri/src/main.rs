@@ -26,7 +26,10 @@ fn main() {
     .plugin(tauri_plugin_localhost::Builder::new(APP_PORT).build())
     .plugin(tauri_plugin_updater::Builder::new().build())
     .setup(|app| {
-      let app_url = format!("http://localhost:{APP_PORT}")
+      // tauri-plugin-localhost only responds to paths that resolve to a
+      // bundled asset. `/` is not an asset name, while `/index.html` is.
+      // Opening the root path caused the packaged WebView to receive HTTP 500.
+      let app_url = format!("http://localhost:{APP_PORT}/index.html")
         .parse()
         .expect("localhost application URL must be valid");
       WebviewWindowBuilder::new(app, MAIN_WINDOW, WebviewUrl::External(app_url))

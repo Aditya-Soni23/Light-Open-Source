@@ -140,12 +140,10 @@ export class DesktopBridge {
     }
 
     const compact = mode === 'xtreme-small';
-    // The packaged main window is deliberately served by tauri-plugin-localhost
-    // for Firebase OAuth. A root-relative Tauri URL (/#/...) resolves against
-    // Tauri's app protocol instead of that loopback server in a release build.
-    // Use the main window's full origin so secondary windows load the same app,
-    // route, storage, and BroadcastChannel namespace as the main window.
-    const overlayUrl = new URL(`/#/${mode}`, window.location.href).toString();
+    // The localhost asset server serves concrete bundled asset paths only.
+    // Keep the hash route used by main.tsx, but load it through index.html so
+    // each native overlay avoids the unmatched `/` request that returns 500.
+    const overlayUrl = new URL(`/index.html#/${mode}`, window.location.href).toString();
     diagnostic('creating-window', { label, overlayUrl });
     const overlay = new WebviewWindow(label, {
       url: overlayUrl,

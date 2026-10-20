@@ -12,7 +12,6 @@ import {
 } from 'lucide-react';
 import { Avatar } from '../common/Avatar';
 import { UserProfile } from '../../types';
-import { signOut } from '../../services/auth';
 
 export type MainNavSection = 'home' | 'friends' | 'messages' | 'groups' | 'voice' | 'settings';
 
@@ -25,6 +24,7 @@ interface AppSidebarProps {
   isInVoice: boolean;
   onOpenMiniCompanion: () => void;
   onOpenXtremeSmall?: () => void;
+  onRequestLogout: () => void;
 }
 
 export const AppSidebar: React.FC<AppSidebarProps> = ({
@@ -36,6 +36,7 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
   isInVoice,
   onOpenMiniCompanion,
   onOpenXtremeSmall,
+  onRequestLogout,
 }) => {
   const navItems: { id: MainNavSection; label: string; icon: React.FC<any>; badge?: number }[] = [
     { id: 'home', label: 'Home', icon: Compass },
@@ -45,14 +46,6 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
     { id: 'voice', label: 'Voice Rooms', icon: Radio },
     { id: 'settings', label: 'Preferences', icon: Settings },
   ];
-
-  const handleSignOut = async () => {
-    try {
-      await signOut();
-    } catch (e) {
-      console.error('Sign out error:', e);
-    }
-  };
 
   return (
     <aside className="w-14 light-surface light-divider border-r flex flex-col items-center py-3 select-none shrink-0 z-20 transition-colors">
@@ -131,7 +124,7 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
         )}
 
         <button
-          onClick={handleSignOut}
+          onClick={onRequestLogout}
           title="Sign Out"
           className="w-7 h-7 rounded-lg flex items-center justify-center text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors cursor-pointer"
         >

@@ -12,8 +12,7 @@ import {
   getUserProfile,
   reserveUsernameAndSaveProfile,
   sanitizeUsername,
-  waitForPendingProfileCreation,
-  finishGoogleRedirectSignIn
+  waitForPendingProfileCreation
 } from './services/auth';
 import { authPersistenceReady } from './services/firebase';
 import {
@@ -49,11 +48,12 @@ import { LightMiniCompanion } from './components/mini/LightMiniCompanion';
 import { XtremeSmallCompanion } from './components/mini/XtremeSmallCompanion';
 import { SettingsView } from './components/settings/SettingsView';
 import { AuthModal } from './components/auth/AuthModal';
-import { GuestUpgradeModal } from './components/auth/GuestUpgradeModal';
+import { LogoutConfirmModal } from './components/auth/LogoutConfirmModal';
 import { CreateGroupModal } from './components/groups/CreateGroupModal';
 import { AgoraConfigModal } from './components/voice/AgoraConfigModal';
 import { Toast } from './components/common/Toast';
 import { UpdateManager } from './components/common/UpdateManager';
+import { signOut } from './services/auth';
 
 export type AppInterfaceMode = 'normal' | 'companion' | 'xtreme-small';
 
@@ -84,10 +84,17 @@ export default function App() {
   const [isVoiceRoomFullViewOpen, setIsVoiceRoomFullViewOpen] = useState(false);
 
   // Modals state
-  const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
+  const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false);
   const [isCreateGroupModalOpen, setIsCreateGroupModalOpen] = useState(false);
   const [isAgoraConfigModalOpen, setIsAgoraConfigModalOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  // Voice's expanded room is a subview, not an app-wide overlay. Always clear
+  // it when navigating so a stale room can never cover the destination page.
+  const navigateToSection = (section: MainNavSection) => {
+    setCurrentSection(section);
+    setIsVoiceRoomFullViewOpen(false);
+  };
 
   // Initialize and subscribe to user visual preferences & theme
   useEffect(() => {
@@ -112,23 +119,10 @@ export default function App() {
     }, 2000);
 
     const startAuthSubscription = async () => {
-      let redirectError = false;
       try {
         await authPersistenceReady;
-        // Native Google login returns to this WebView rather than opening a
-        // browser popup. Resolve the redirect before subscribing so profile
-        // creation cannot be replaced by a generated gamer handle.
-        await finishGoogleRedirectSignIn();
       } catch (err) {
-        // finishGoogleRedirectSignIn already logs a redacted Firebase error
-        // code. Keep the startup listener alive: it can still restore an
-        // existing session when a redirect exchange fails.
-        redirectError = true;
-        console.warn('[App] Google redirect restoration failed; awaiting auth state.', {
-          code: typeof (err as { code?: unknown })?.code === 'string'
-            ? (err as { code: string }).code
-            : 'unknown',
-        });
+        console.warn('[App] Authentication persistence setup failed; awaiting auth state.', err);
       }
 
       if (!isMounted) return;
@@ -136,7 +130,6 @@ export default function App() {
       if (!isMounted) return;
       console.info('[App] Applying restored Firebase session.', {
         signedIn: Boolean(user),
-        redirectError,
       });
       setAuthUser(user);
       if (user) {
@@ -254,7 +247,7 @@ export default function App() {
   const handleStartDirectMessage = async (recipient: UserProfile) => {
     if (!userProfile) return;
     setActiveRecipient(recipient);
-    setCurrentSection('messages');
+    navigateToSection('messages');
     try {
       await getOrCreateDirectConversation(userProfile, recipient);
     } catch (e) {
@@ -264,7 +257,7 @@ export default function App() {
 
   const handleSelectGroup = (group: GroupConversation) => {
     setActiveGroup(group);
-    setCurrentSection('groups');
+    navigateToSection('groups');
   };
 
   const handleJoinVoiceRoom = async (channelId: string, groupName: string) => {
@@ -363,8 +356,7 @@ export default function App() {
           await handleOpenXtremeSmall();
           break;
         case 'open-voice-chat':
-          setCurrentSection('voice');
-          setIsVoiceRoomFullViewOpen(true);
+          navigateToSection('voice');
           await desktop.showMainWindow();
           break;
         case 'show-main':
@@ -431,7 +423,6 @@ export default function App() {
             <TopHeader
               userProfile={userProfile}
               activeViewTitle={getViewTitle()}
-              onOpenUpgradeModal={() => setIsUpgradeModalOpen(true)}
               onOpenCompanionMode={handleOpenCompanionMode}
               onOpenXtremeSmall={handleOpenXtremeSmall}
             />
@@ -441,8 +432,7 @@ export default function App() {
               <AppSidebar
                 currentSection={currentSection}
                 onSelectSection={(sec) => {
-                  setCurrentSection(sec);
-                  if (sec === 'voice') setIsVoiceRoomFullViewOpen(true);
+                  navigateToSection(sec);
                 }}
                 userProfile={userProfile}
                 pendingRequestsCount={incomingRequests.length}
@@ -450,6 +440,7 @@ export default function App() {
                 isInVoice={voiceState.isConnected}
                 onOpenMiniCompanion={handleOpenCompanionMode}
                 onOpenXtremeSmall={handleOpenXtremeSmall}
+                onRequestLogout={() => setIsLogoutConfirmOpen(true)}
               />
 
               {/* Contextual Sub-Sidebar */}
@@ -463,20 +454,20 @@ export default function App() {
                   activeGroup={activeGroup}
                   onSelectFriend={(f) => {
                     setActiveRecipient(f);
-                    setCurrentSection('messages');
+                    navigateToSection('messages');
                   }}
                   onSelectGroup={(g) => {
                     setActiveGroup(g);
-                    setCurrentSection('groups');
+                    navigateToSection('groups');
                   }}
                   onOpenCreateGroupModal={() => setIsCreateGroupModalOpen(true)}
-                  onSelectSection={setCurrentSection}
+                  onSelectSection={navigateToSection}
                 />
               )}
 
               {/* Central Main Viewport */}
               <main className="flex-1 flex flex-col overflow-hidden relative light-app-shell transition-colors">
-                {isVoiceRoomFullViewOpen ? (
+                {currentSection === 'voice' && isVoiceRoomFullViewOpen ? (
                   <VoiceRoomView
                     voiceState={voiceState}
                     currentUser={userProfile}
@@ -498,7 +489,7 @@ export default function App() {
                         onJoinVoice={handleJoinVoiceRoom}
                         onOpenMiniCompanion={handleOpenCompanionMode}
                         onOpenXtremeSmall={handleOpenXtremeSmall}
-                        onNavigateToFriends={() => setCurrentSection('friends')}
+                        onNavigateToFriends={() => navigateToSection('friends')}
                       />
                     )}
 
@@ -564,7 +555,7 @@ export default function App() {
                         voiceState={voiceState}
                         currentUser={userProfile}
                         onOpenMiniCompanion={handleOpenCompanionMode}
-                        onCloseView={() => setCurrentSection('home')}
+                        onCloseView={() => navigateToSection('home')}
                         onShowConfigModal={() => setIsAgoraConfigModalOpen(true)}
                       />
                     )}
@@ -573,11 +564,8 @@ export default function App() {
                       <SettingsView
                         currentUser={userProfile}
                         onProfileUpdated={setUserProfile}
-                        onOpenUpgradeModal={() => setIsUpgradeModalOpen(true)}
-                        onShowAgoraModal={() => setIsAgoraConfigModalOpen(true)}
+                        onRequestLogout={() => setIsLogoutConfirmOpen(true)}
                         onToast={setToastMessage}
-                        onOpenCompanionMode={handleOpenCompanionMode}
-                        onOpenXtremeSmall={handleOpenXtremeSmall}
                       />
                     )}
                   </>
@@ -619,8 +607,7 @@ export default function App() {
             onSwitchToXtremeSmall={handleOpenXtremeSmall}
             onExpandToFullApp={handleExpandToFullApp}
             onOpenVoiceChat={() => {
-              setCurrentSection('voice');
-              setIsVoiceRoomFullViewOpen(true);
+              navigateToSection('voice');
             }}
             voiceState={voiceState}
             currentUser={userProfile}
@@ -635,13 +622,12 @@ export default function App() {
             currentUser={userProfile}
           />
 
-          {/* Guest Upgrade Modal */}
-          <GuestUpgradeModal
-            isOpen={isUpgradeModalOpen}
-            onClose={() => setIsUpgradeModalOpen(false)}
-            onUpgraded={(upgraded) => {
-              setUserProfile(upgraded);
-              setToastMessage('Account upgraded to permanent Google login!');
+          <LogoutConfirmModal
+            isOpen={isLogoutConfirmOpen}
+            onClose={() => setIsLogoutConfirmOpen(false)}
+            onConfirm={async () => {
+              await signOut();
+              setIsLogoutConfirmOpen(false);
             }}
           />
 
@@ -653,7 +639,7 @@ export default function App() {
             friends={friends}
             onGroupCreated={(newGroup) => {
               setActiveGroup(newGroup);
-              setCurrentSection('groups');
+              navigateToSection('groups');
             }}
             onToast={setToastMessage}
           />
