@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Expand, Mic, MicOff, PhoneOff, Pin, Volume2, VolumeX, X } from 'lucide-react';
+import { Expand, Mic, MicOff, PhoneOff, Pin, Radio, Shrink, Volume2, VolumeX, X } from 'lucide-react';
 import { getCurrentWindow, LogicalSize } from '@tauri-apps/api/window';
 import { VoiceSessionState } from '../../types';
 import { BrandLogo } from '../brand/BrandLogo';
@@ -79,6 +79,7 @@ export const DesktopOverlay: React.FC<{ mode: OverlayMode }> = ({ mode }) => {
         <div className="flex items-center gap-2 pointer-events-none"><span className="w-5 h-5"><BrandLogo size="custom" iconOnly /></span><span className="text-xs font-semibold">LIGHT Companion</span></div>
         <div className="flex gap-1" data-tauri-drag-region="false">
           <button onClick={() => updatePrefs({ ...prefs, companion: { ...prefs.companion, alwaysOnTop: !prefs.companion.alwaysOnTop } })} title={prefs.companion.alwaysOnTop ? 'Unpin window' : 'Pin above other windows'} className={`p-1.5 rounded ${prefs.companion.alwaysOnTop ? 'text-sky-300 bg-sky-400/15' : 'hover:bg-white/10'}`}><Pin className="w-3.5 h-3.5" /></button>
+          <button onClick={() => command('open-xtreme-small')} title="Switch to Xtreme Small" className="p-1.5 hover:bg-white/10 rounded"><Shrink className="w-3.5 h-3.5" /></button>
           <button onClick={() => command('show-main')} title="Open full app" className="p-1.5 hover:bg-white/10 rounded"><Expand className="w-3.5 h-3.5" /></button>
           <button onClick={close} title="Hide companion" className="p-1.5 hover:bg-rose-500/30 rounded"><X className="w-3.5 h-3.5" /></button>
         </div>
@@ -90,6 +91,7 @@ export const DesktopOverlay: React.FC<{ mode: OverlayMode }> = ({ mode }) => {
           <button disabled={!voice.isConnected} onClick={() => command('toggle-deafen')} className="py-3 rounded-xl bg-slate-800 disabled:opacity-40 hover:bg-slate-700 flex flex-col items-center gap-1 text-[10px]">{voice.isDeafened ? <VolumeX className="w-4 h-4 text-rose-400" /> : <Volume2 className="w-4 h-4" />} Deafen</button>
           <button disabled={!voice.isConnected} onClick={() => command('leave-voice')} className="py-3 rounded-xl bg-rose-500/15 text-rose-300 disabled:opacity-40 hover:bg-rose-500/25 flex flex-col items-center gap-1 text-[10px]"><PhoneOff className="w-4 h-4" /> Leave</button>
         </div>
+        <button onClick={() => command('open-voice-chat')} disabled={!voice.isConnected} className="w-full py-2.5 rounded-xl bg-sky-400/15 text-sky-200 hover:bg-sky-400/25 disabled:opacity-40 flex items-center justify-center gap-2 text-[11px] font-medium"><Radio className="w-4 h-4" /> Open current voice chat</button>
         <div className="space-y-2 text-[10px] text-slate-400">
           <label className="flex items-center justify-between gap-2"><span>Opacity</span><input aria-label="Companion opacity" type="range" min="40" max="100" value={prefs.companion.opacity} onChange={(e) => updatePrefs({ ...prefs, companion: { ...prefs.companion, opacity: Number(e.target.value) } })} className="flex-1 accent-sky-400" /></label>
           <label className="flex items-center justify-between gap-2"><span>Width</span><input aria-label="Companion width" type="range" min="250" max="420" value={prefs.companion.width} onChange={(e) => updatePrefs({ ...prefs, companion: { ...prefs.companion, width: Number(e.target.value) } })} className="flex-1 accent-sky-400" /></label>

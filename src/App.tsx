@@ -11,8 +11,11 @@ import {
   subscribeToAuth,
   getUserProfile,
   reserveUsernameAndSaveProfile,
-  sanitizeUsername
+  sanitizeUsername,
+  waitForPendingProfileCreation,
+  finishGoogleRedirectSignIn
 } from './services/auth';
+import { authPersistenceReady } from './services/firebase';
 import {
   subscribeToFriends,
   subscribeToIncomingRequests,
@@ -50,6 +53,7 @@ import { GuestUpgradeModal } from './components/auth/GuestUpgradeModal';
 import { CreateGroupModal } from './components/groups/CreateGroupModal';
 import { AgoraConfigModal } from './components/voice/AgoraConfigModal';
 import { Toast } from './components/common/Toast';
+import { UpdateManager } from './components/common/UpdateManager';
 
 export type AppInterfaceMode = 'normal' | 'companion' | 'xtreme-small';
 
@@ -98,6 +102,7 @@ export default function App() {
   // Subscribe to Firebase Auth with watchdog timeout and auto-healing
   useEffect(() => {
     let isMounted = true;
+    let unsubscribe = () => {};
 
     // Safety watchdog: ensure loading spinner never blocks the user longer than 2 seconds
     const safetyTimer = setTimeout(() => {
@@ -106,12 +111,44 @@ export default function App() {
       }
     }, 2000);
 
-    const unsubscribe = subscribeToAuth(async (user) => {
+    const startAuthSubscription = async () => {
+      let redirectError = false;
+      try {
+        await authPersistenceReady;
+        // Native Google login returns to this WebView rather than opening a
+        // browser popup. Resolve the redirect before subscribing so profile
+        // creation cannot be replaced by a generated gamer handle.
+        await finishGoogleRedirectSignIn();
+      } catch (err) {
+        // finishGoogleRedirectSignIn already logs a redacted Firebase error
+        // code. Keep the startup listener alive: it can still restore an
+        // existing session when a redirect exchange fails.
+        redirectError = true;
+        console.warn('[App] Google redirect restoration failed; awaiting auth state.', {
+          code: typeof (err as { code?: unknown })?.code === 'string'
+            ? (err as { code: string }).code
+            : 'unknown',
+        });
+      }
+
       if (!isMounted) return;
+      unsubscribe = subscribeToAuth(async (user) => {
+      if (!isMounted) return;
+      console.info('[App] Applying restored Firebase session.', {
+        signedIn: Boolean(user),
+        redirectError,
+      });
       setAuthUser(user);
       if (user) {
         try {
           let profile = await getUserProfile(user.uid);
+          // Firebase emits the auth event before the selected profile is
+          // written. Wait for that operation, rather than replacing a user's
+          // chosen name/handle with an automatic fallback.
+          if (!profile) {
+            await waitForPendingProfileCreation();
+            profile = await getUserProfile(user.uid);
+          }
           if (!profile) {
             // Auto-heal/generate user profile for existing auth session
             const cleanName = user.displayName || (user.isAnonymous ? 'Guest Gamer' : 'Gamer');
@@ -149,7 +186,10 @@ export default function App() {
         if (isMounted) setUserProfile(null);
       }
       if (isMounted) setAuthLoading(false);
-    });
+      });
+    };
+
+    void startAuthSubscription();
 
     return () => {
       isMounted = false;
@@ -244,11 +284,21 @@ export default function App() {
   // Mode switching handlers
   const handleOpenCompanionMode = async () => {
     if (desktop.getEnvironment().isTauri) {
-      // Never leave the old, in-app overlay visible when opening the native one.
-      setInterfaceMode('normal');
-      setIsMiniCompanionOpen(false);
-      await desktop.closeOverlay('xtreme-small');
-      await desktop.openOverlay('companion');
+      try {
+        // Never leave the old, in-app overlay visible when opening the native one.
+        setInterfaceMode('normal');
+        setIsMiniCompanionOpen(false);
+        await desktop.closeOverlay('xtreme-small');
+        await desktop.openOverlay('companion');
+        await desktop.hideMainWindow();
+      } catch (error) {
+        console.error('[App] Could not open Companion mode:', error);
+        await desktop.showMainWindow().catch((restoreError) =>
+          console.error('[App] Could not restore main window after Companion failure:', restoreError)
+        );
+        const detail = error instanceof Error ? error.message : String(error);
+        setToastMessage(`Could not open Companion mode: ${detail}`);
+      }
       return;
     }
     setInterfaceMode('companion');
@@ -257,11 +307,21 @@ export default function App() {
 
   const handleOpenXtremeSmall = async () => {
     if (desktop.getEnvironment().isTauri) {
-      // Never leave the old, in-app overlay visible when opening the native one.
-      setInterfaceMode('normal');
-      setIsMiniCompanionOpen(false);
-      await desktop.closeOverlay('companion');
-      await desktop.openOverlay('xtreme-small');
+      try {
+        // Never leave the old, in-app overlay visible when opening the native one.
+        setInterfaceMode('normal');
+        setIsMiniCompanionOpen(false);
+        await desktop.closeOverlay('companion');
+        await desktop.openOverlay('xtreme-small');
+        await desktop.hideMainWindow();
+      } catch (error) {
+        console.error('[App] Could not open Xtreme Small mode:', error);
+        await desktop.showMainWindow().catch((restoreError) =>
+          console.error('[App] Could not restore main window after Xtreme failure:', restoreError)
+        );
+        const detail = error instanceof Error ? error.message : String(error);
+        setToastMessage(`Could not open Xtreme Small mode: ${detail}`);
+      }
       return;
     }
     setInterfaceMode('xtreme-small');
@@ -298,6 +358,14 @@ export default function App() {
           break;
         case 'open-companion':
           await handleOpenCompanionMode();
+          break;
+        case 'open-xtreme-small':
+          await handleOpenXtremeSmall();
+          break;
+        case 'open-voice-chat':
+          setCurrentSection('voice');
+          setIsVoiceRoomFullViewOpen(true);
+          await desktop.showMainWindow();
           break;
         case 'show-main':
           await handleExpandToFullApp();
@@ -342,6 +410,7 @@ export default function App() {
 
   return (
     <div className="h-screen w-screen light-app-shell flex flex-col overflow-hidden font-sans transition-colors">
+      <UpdateManager />
       {/* Auth Modal displayed whenever userProfile is not yet established */}
       <AuthModal
         isOpen={!userProfile}
@@ -549,6 +618,10 @@ export default function App() {
             }}
             onSwitchToXtremeSmall={handleOpenXtremeSmall}
             onExpandToFullApp={handleExpandToFullApp}
+            onOpenVoiceChat={() => {
+              setCurrentSection('voice');
+              setIsVoiceRoomFullViewOpen(true);
+            }}
             voiceState={voiceState}
             currentUser={userProfile}
           />

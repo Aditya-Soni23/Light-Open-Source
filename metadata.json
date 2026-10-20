@@ -1,0 +1,6 @@
+{
+  "name": "LIGHT by DIAMOND",
+  "description": "Your friends. Your game. One click away. Modern gaming companion with voice rooms, direct chat, and LIGHT Mini.",
+  "requestFramePermissions": ["camera", "microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

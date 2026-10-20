@@ -1,5 +1,12 @@
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
-import { getAuth, GoogleAuthProvider, Auth } from 'firebase/auth';
+import {
+  getAuth,
+  GoogleAuthProvider,
+  Auth,
+  browserLocalPersistence,
+  indexedDBLocalPersistence,
+  setPersistence,
+} from 'firebase/auth';
 import { getFirestore, Firestore } from 'firebase/firestore';
 import { getDatabase, Database } from 'firebase/database';
 import { getStorage, FirebaseStorage } from 'firebase/storage';
@@ -20,6 +27,33 @@ const firebaseConfig = {
 export const app: FirebaseApp = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 
 export const auth: Auth = getAuth(app);
+
+const getAuthRuntime = () => ({
+  protocol: typeof window === 'undefined' ? 'unknown' : window.location.protocol,
+  hostname: typeof window === 'undefined' ? 'unknown' : window.location.hostname,
+  isTauri: typeof window !== 'undefined' && Boolean((window as any).__TAURI_INTERNALS__),
+});
+
+// Tauri's WebView can otherwise fall back to a session-only storage backend.
+// Prefer IndexedDB and use localStorage when IndexedDB is unavailable so an
+// OAuth redirect returns to the same signed-in LIGHT session.
+export const authPersistenceReady = setPersistence(auth, indexedDBLocalPersistence)
+  .then(() => {
+    console.info('[FirebaseAuth] Persistence ready.', { backend: 'indexeddb', ...getAuthRuntime() });
+  })
+  .catch((error: unknown) => {
+    // Some embedded WebViews disable IndexedDB. localStorage remains durable
+    // across the same-window redirect, so use it only as a fallback.
+    const firebaseError = error as { code?: unknown } | null;
+    console.warn('[FirebaseAuth] IndexedDB persistence unavailable; trying localStorage.', {
+      code: typeof firebaseError?.code === 'string' ? firebaseError.code : 'unknown',
+      ...getAuthRuntime(),
+    });
+    return setPersistence(auth, browserLocalPersistence).then(() => {
+      console.info('[FirebaseAuth] Persistence ready.', { backend: 'localstorage', ...getAuthRuntime() });
+    });
+  });
+
 export const googleAuthProvider = new GoogleAuthProvider();
 googleAuthProvider.setCustomParameters({ prompt: 'select_account' });
 

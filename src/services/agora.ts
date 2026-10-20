@@ -4,7 +4,9 @@ import AgoraRTC, {
   UID
 } from 'agora-rtc-sdk-ng';
 import { auth } from './firebase';
+import { getUserProfile } from './auth';
 import { VoiceParticipant, VoiceSessionState } from '../types';
+import { normalizeVoiceChannelName } from './voiceChannel';
 
 // Agora App ID supplied for LIGHT
 export const AGORA_APP_ID = import.meta.env.VITE_AGORA_APP_ID || '8c3ee7f5209846b99763087d2cab533a';
@@ -21,6 +23,7 @@ class AgoraVoiceService {
   private client: IAgoraRTCClient | null = null;
   private localAudioTrack: IMicrophoneAudioTrack | null = null;
   private listeners: Set<VoiceStateListener> = new Set();
+  private resolvingParticipantProfiles = new Set<string>();
 
   private state: VoiceSessionState = {
     isConnected: false,
@@ -46,6 +49,12 @@ class AgoraVoiceService {
 
   private setupClientEvents() {
     if (!this.client) return;
+
+    // A participant can join while muted, so resolve their chosen profile as
+    // soon as Agora sees them rather than waiting for an audio publication.
+    this.client.on('user-joined', (user) => {
+      this.updateRemoteParticipant(user.uid, { isMuted: true });
+    });
 
     // Remote user publishes audio stream
     this.client.on('user-published', async (user, mediaType) => {
@@ -123,15 +132,36 @@ class AgoraVoiceService {
       this.state.participants.push({
         uid: String(agoraUid),
         agoraUid,
-        displayName: `Gamer ${String(agoraUid).slice(-4)}`,
-        username: `gamer_${String(agoraUid).slice(-4)}`,
+        displayName: 'Voice participant',
+        username: 'member',
         isMuted: updates.isMuted ?? false,
         isDeafened: false,
         isSpeaking: false,
         audioLevel: 0,
       });
     }
+    void this.resolveRemoteParticipantProfile(agoraUid);
     this.notify();
+  }
+
+  /** Agora receives the Firebase UID; resolve it to the profile people chose. */
+  private async resolveRemoteParticipantProfile(agoraUid: UID) {
+    const uid = String(agoraUid);
+    if (uid === auth.currentUser?.uid || this.resolvingParticipantProfiles.has(uid)) return;
+    this.resolvingParticipantProfiles.add(uid);
+    try {
+      const profile = await getUserProfile(uid);
+      const participant = this.state.participants.find((item) => String(item.agoraUid) === uid);
+      if (profile && participant) {
+        participant.uid = profile.uid;
+        participant.displayName = profile.displayName;
+        participant.username = profile.username;
+        participant.photoURL = profile.photoURL;
+        this.notify();
+      }
+    } finally {
+      this.resolvingParticipantProfiles.delete(uid);
+    }
   }
 
   public subscribe(listener: VoiceStateListener) {
@@ -153,7 +183,7 @@ class AgoraVoiceService {
   /**
    * Request an RTC token from the secure server endpoint
    */
-  private async fetchRtcToken(channelName: string): Promise<{ token: string; appId: string }> {
+  private async fetchRtcToken(channelName: string): Promise<{ token: string; appId: string; channelName: string }> {
     const currentUser = auth.currentUser;
     if (!currentUser) {
       throw new Error('You must be signed in to join voice.');
@@ -194,13 +224,23 @@ class AgoraVoiceService {
       throw new Error(String(data.error || `Voice token request failed (${response.status}).`));
     }
 
-    if (!contentType.includes('application/json') || typeof data.token !== 'string' || typeof data.appId !== 'string') {
+    if (
+      !contentType.includes('application/json') ||
+      typeof data.token !== 'string' ||
+      typeof data.appId !== 'string' ||
+      typeof data.channelName !== 'string'
+    ) {
       throw new Error('Voice token service returned incomplete data. Please check the deployed API configuration.');
+    }
+
+    if (data.channelName !== channelName) {
+      throw new Error('Voice token service returned a different room. Please try joining again.');
     }
 
     return {
       token: data.token,
       appId: data.appId || AGORA_APP_ID,
+      channelName: data.channelName,
     };
   }
 
@@ -216,10 +256,12 @@ class AgoraVoiceService {
       await this.leaveVoiceRoom();
     }
 
+    const agoraChannelName = await normalizeVoiceChannelName(channelId);
+
     this.state.isConnecting = true;
     this.state.error = null;
     this.state.channelId = channelId;
-    this.state.channelName = `light_${channelId}`;
+    this.state.channelName = agoraChannelName;
     this.state.groupName = groupName;
     this.notify();
 
@@ -229,10 +271,10 @@ class AgoraVoiceService {
       }
 
       // Fetch short-lived token from server
-      const { token, appId } = await this.fetchRtcToken(this.state.channelName);
+      const { token, appId, channelName } = await this.fetchRtcToken(agoraChannelName);
 
       // Join Agora RTC channel
-      await this.client!.join(appId, this.state.channelName, token, userProfile.uid);
+      await this.client!.join(appId, channelName, token, userProfile.uid);
 
       // Create local microphone track
       try {

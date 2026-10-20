@@ -839,7 +839,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   className="px-3 py-1.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-500/30 text-amber-700 dark:text-amber-300 hover:bg-amber-100 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
                 >
                   <Shield className="w-3.5 h-3.5" />
-                  <span>Link Google Account</span>
+                  <span>Account Linking</span>
                 </button>
               )}
             </div>

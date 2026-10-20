@@ -1,0 +1,10 @@
+{
+  "version": "0.1.1",
+  "notes": "Updater test release for LIGHT desktop.",
+  "platforms": {
+    "windows-x86_64": {
+      "url": "https://github.com/Aditya-Soni23/light-desktop/releases/download/v0.1.1/LIGHT_0.1.1_x64-setup.exe",
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSbkl3Ymc4djlId2hmaWEwU1Z1TXJQQ0NwdjNEMjRMUy81NklFS0MvMUdIb0IrTXZtV0xYa0dHOGlaNjRKUWdlTlZZbVVONkhZUGtHQ2FtdGtYZ1RRblRKYSttaWgzRGdzPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkyNDM0MjU3CWZpbGU6TElHSFRfMC4xLjFfeDY0LXNldHVwLmV4ZQl2ZXJzaW9uOjAuMS4xCnhDS2lOUnlaUWczWnhzV2p2Y0J2WURwc29DRG95aFNzYkU3cDlHUTZFVitoOEloNnpjSFU3TDB1OTdJOVVTVjFvRlhzMmlYcitKcHk5Y0liRDVqQUN3PT0K"
+    }
+  }
+}

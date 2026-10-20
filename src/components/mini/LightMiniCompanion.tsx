@@ -28,6 +28,7 @@ interface LightMiniCompanionProps {
   onClose: () => void;
   onSwitchToXtremeSmall: () => void;
   onExpandToFullApp: () => void;
+  onOpenVoiceChat: () => void;
   voiceState: VoiceSessionState;
   currentUser: UserProfile;
 }
@@ -37,6 +38,7 @@ export const LightMiniCompanion: React.FC<LightMiniCompanionProps> = ({
   onClose,
   onSwitchToXtremeSmall,
   onExpandToFullApp,
+  onOpenVoiceChat,
   voiceState,
   currentUser,
 }) => {
@@ -380,6 +382,14 @@ export const LightMiniCompanion: React.FC<LightMiniCompanionProps> = ({
               )}
             </button>
           </div>
+
+          <button
+            onClick={onOpenVoiceChat}
+            disabled={!voiceState.isConnected}
+            className="no-drag w-full py-1.5 rounded-xl bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 text-xs font-medium hover:bg-sky-100 dark:hover:bg-sky-900/40 disabled:opacity-40 flex items-center justify-center gap-1.5"
+          >
+            <Radio className="w-3.5 h-3.5" /> Open current voice chat
+          </button>
 
           {/* Quick Switch to Xtreme Small Banner */}
           <div className="pt-1 flex items-center justify-between text-[10px] text-slate-400 dark:text-slate-500 font-mono no-drag">

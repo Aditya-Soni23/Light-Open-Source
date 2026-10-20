@@ -1,11 +1,12 @@
 import {
-  signInWithPopup,
   signInWithRedirect,
+  getRedirectResult,
   signInAnonymously,
-  linkWithPopup,
   linkWithRedirect,
+  updateProfile,
   signOut as firebaseSignOut,
   onAuthStateChanged,
+  onIdTokenChanged,
   User
 } from 'firebase/auth';
 import {
@@ -16,11 +17,34 @@ import {
   remove,
   runTransaction
 } from 'firebase/database';
-import { auth, googleAuthProvider, rtdb } from './firebase';
+import { auth, authPersistenceReady, googleAuthProvider, rtdb } from './firebase';
 import { UserProfile } from '../types';
 
-const isNativeDesktop = () =>
-  typeof window !== 'undefined' && Boolean((window as any).__TAURI_INTERNALS__);
+const getAuthRuntime = () => ({
+  protocol: typeof window === 'undefined' ? 'unknown' : window.location.protocol,
+  hostname: typeof window === 'undefined' ? 'unknown' : window.location.hostname,
+  isTauri: typeof window !== 'undefined' && Boolean((window as any).__TAURI_INTERNALS__),
+});
+
+export const logGoogleAuthFailure = (error: unknown) => {
+  const firebaseError = error as { code?: unknown } | null;
+  console.warn('[GoogleAuth] Sign-in did not produce a Firebase session.', {
+    code: typeof firebaseError?.code === 'string' ? firebaseError.code : 'unknown',
+    ...getAuthRuntime(),
+  });
+};
+
+let profileCreationInProgress: Promise<void> | null = null;
+
+/**
+ * Wait for a sign-in operation that is still writing its profile. Firebase
+ * emits `onAuthStateChanged` before that write completes, so consumers must
+ * not manufacture a fallback profile in the middle of the operation.
+ */
+export const waitForPendingProfileCreation = async (): Promise<void> => {
+  const pending = profileCreationInProgress;
+  if (pending) await pending;
+};
 
 /**
  * Clean & validate username format:
@@ -187,94 +211,140 @@ export const getUserByUsername = async (username: string): Promise<UserProfile |
   }
 };
 
-/**
- * Sign in with Google Popup.
- */
-export const signInWithGoogle = async (): Promise<{ user: User; profile: UserProfile | null }> => {
-  // WebView2 blocks popup creation in packaged apps. Redirect is Firebase's
-  // supported non-popup flow and returns to this app after Google sign-in.
-  if (isNativeDesktop()) {
-    await signInWithRedirect(auth, googleAuthProvider);
-    return new Promise<never>(() => {});
-  }
+/** Create the first profile for a verified Google user, if required. */
+const createGoogleProfile = async (user: User): Promise<UserProfile | null> => {
+  let finishProfileCreation!: () => void;
+  profileCreationInProgress = new Promise((resolve) => {
+    finishProfileCreation = resolve;
+  });
+  try {
+    let profile = await getUserProfile(user.uid);
 
-  const result = await signInWithPopup(auth, googleAuthProvider);
-  const user = result.user;
-  let profile = await getUserProfile(user.uid);
+    if (!profile) {
+      const rawName = user.displayName || user.email?.split('@')[0] || 'gamer';
+      let baseUsername = sanitizeUsername(rawName) || 'gamer';
+      if (baseUsername.length < 3) baseUsername = `${baseUsername}player`;
+      let candidate = baseUsername.slice(0, 15);
 
-  if (!profile) {
-    const rawName = user.displayName || user.email?.split('@')[0] || 'gamer';
-    let baseUsername = sanitizeUsername(rawName) || 'gamer';
-    if (baseUsername.length < 3) baseUsername = `${baseUsername}player`;
-    let candidate = baseUsername.slice(0, 15);
+      const available = await isUsernameAvailable(candidate);
+      if (!available) {
+        candidate = `${candidate.slice(0, 14)}_${Math.floor(1000 + Math.random() * 9000)}`;
+      }
 
-    const available = await isUsernameAvailable(candidate);
-    if (!available) {
-      candidate = `${candidate.slice(0, 14)}_${Math.floor(1000 + Math.random() * 9000)}`;
+      profile = await reserveUsernameAndSaveProfile(
+        user.uid,
+        candidate,
+        user.displayName || 'Gamer',
+        user.email,
+        user.photoURL,
+        false
+      );
+    } else if (profile.isGuest && rtdb) {
+      // This redirect may be an account-link operation. Keep the member's
+      // chosen display name and handle, while making that same profile a
+      // permanent Google-backed account.
+      await update(ref(rtdb, `users/${user.uid}`), {
+        email: user.email || null,
+        isGuest: false,
+        updatedAt: Date.now(),
+      });
+      profile = { ...profile, email: user.email || null, isGuest: false, updatedAt: Date.now() };
     }
 
-    profile = await reserveUsernameAndSaveProfile(
-      user.uid,
-      candidate,
-      user.displayName || 'Gamer',
-      user.email,
-      user.photoURL,
-      false
-    );
+    return profile;
+  } finally {
+    finishProfileCreation();
+    profileCreationInProgress = null;
   }
+};
 
-  return { user, profile };
+/** Complete a same-window Google redirect after the app is restored. */
+export const finishGoogleRedirectSignIn = async (): Promise<UserProfile | null> => {
+  await authPersistenceReady;
+  console.info('[GoogleAuth] Resolving redirect result.', getAuthRuntime());
+  try {
+    const result = await getRedirectResult(auth);
+    console.info('[GoogleAuth] Redirect result resolved.', {
+      hasResult: Boolean(result),
+      signedIn: Boolean(auth.currentUser),
+      ...getAuthRuntime(),
+    });
+    return result ? createGoogleProfile(result.user) : null;
+  } catch (error) {
+    logGoogleAuthFailure(error);
+    throw error;
+  }
+};
+
+export const signInWithGoogle = async (): Promise<{ user: User; profile: UserProfile | null }> => {
+  await authPersistenceReady;
+  // Always use Firebase's redirect flow. It navigates the current app webview
+  // (or browser tab) to Google's approved page and never asks the browser to
+  // create a popup window.
+  console.info('[GoogleAuth] Starting same-window redirect.', getAuthRuntime());
+  await signInWithRedirect(auth, googleAuthProvider);
+  return new Promise<never>(() => {});
 };
 
 export const signInAsGuest = async (
   desiredDisplayName: string,
   desiredUsername?: string
 ): Promise<{ user: User; profile: UserProfile }> => {
-  const result = await signInAnonymously(auth);
-  const user = result.user;
-
   const cleanName = desiredDisplayName.trim() || `Guest_${Math.floor(1000 + Math.random() * 9000)}`;
   const baseUsername = sanitizeUsername(desiredUsername || cleanName) || 'guest';
-  let candidate = desiredUsername
+  const candidate = desiredUsername
     ? sanitizeUsername(desiredUsername)
     : `${baseUsername.slice(0, 14)}_${Math.floor(100 + Math.random() * 900)}`;
 
-  const profile = await reserveUsernameAndSaveProfile(
-    user.uid,
-    candidate,
-    cleanName,
-    null,
-    null,
-    true
-  );
+  if (!isValidUsername(candidate)) {
+    throw new Error('Username must be 3-20 characters using letters, numbers, and underscores.');
+  }
 
-  return { user, profile };
+  await authPersistenceReady;
+  let finishProfileCreation!: () => void;
+  profileCreationInProgress = new Promise((resolve) => {
+    finishProfileCreation = resolve;
+  });
+  try {
+    const result = await signInAnonymously(auth);
+    const user = result.user;
+
+    // Store the requested display name on the Firebase user as well. This
+    // prevents an auth-state refresh from replacing it with a random fallback.
+    await updateProfile(user, { displayName: cleanName });
+
+    const profile = await reserveUsernameAndSaveProfile(
+      user.uid,
+      candidate,
+      cleanName,
+      null,
+      null,
+      true
+    );
+
+    return { user, profile };
+  } catch (error) {
+    // Do not leave a half-created anonymous session that the app would turn
+    // into a generated guest account after the user chose a custom handle.
+    if (auth.currentUser?.isAnonymous) {
+      await firebaseSignOut(auth).catch(() => undefined);
+    }
+    throw error;
+  } finally {
+    finishProfileCreation();
+    profileCreationInProgress = null;
+  }
 };
 
 /**
  * Upgrade Guest account to Google account without losing profile data.
  */
 export const linkGuestToGoogle = async (currentUser: User): Promise<UserProfile> => {
-  if (isNativeDesktop()) {
-    await linkWithRedirect(currentUser, googleAuthProvider);
-    return new Promise<never>(() => {});
-  }
-
-  const result = await linkWithPopup(currentUser, googleAuthProvider);
-  const upgradedUser = result.user;
-
-  if (rtdb) {
-    const userRef = ref(rtdb, `users/${upgradedUser.uid}`);
-    await update(userRef, {
-      email: upgradedUser.email || null,
-      isGuest: false,
-      updatedAt: Date.now(),
-    });
-  }
-
-  const updatedProfile = await getUserProfile(upgradedUser.uid);
-  if (!updatedProfile) throw new Error('Failed to retrieve updated profile');
-  return updatedProfile;
+  await authPersistenceReady;
+  // Linking uses the same in-app/tab redirect as first-time Google sign-in.
+  // getRedirectResult() restores the Firebase user after navigation.
+  await linkWithRedirect(currentUser, googleAuthProvider);
+  return new Promise<never>(() => {});
 };
 
 /**
@@ -294,5 +364,25 @@ export const signOut = async (): Promise<void> => {
 export const subscribeToAuth = (
   callback: (user: User | null) => void
 ) => {
-  return onAuthStateChanged(auth, callback);
+  const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
+    console.info('[FirebaseAuth] Auth state changed.', {
+      signedIn: Boolean(user),
+      isGuest: Boolean(user?.isAnonymous),
+      ...getAuthRuntime(),
+    });
+    callback(user);
+  });
+
+  const unsubscribeToken = onIdTokenChanged(auth, (user) => {
+    console.info('[FirebaseAuth] ID token state changed.', {
+      signedIn: Boolean(user),
+      isGuest: Boolean(user?.isAnonymous),
+      ...getAuthRuntime(),
+    });
+  });
+
+  return () => {
+    unsubscribeAuth();
+    unsubscribeToken();
+  };
 };

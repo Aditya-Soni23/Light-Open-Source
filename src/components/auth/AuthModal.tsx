@@ -1,7 +1,13 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { UserPlus, AlertCircle, Check, MessageSquare, Radio, ShieldCheck } from 'lucide-react';
 import { BrandLogo } from '../brand/BrandLogo';
-import { signInWithGoogle, signInAsGuest, isUsernameAvailable, sanitizeUsername } from '../../services/auth';
+import { AuthDiagnosticsPanel } from './AuthDiagnosticsPanel';
+import {
+  signInAsGuest,
+  isUsernameAvailable,
+  isValidUsername,
+  sanitizeUsername,
+} from '../../services/auth';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -17,44 +23,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onSuccess }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [errorDetails, setErrorDetails] = useState<{ title: string; link?: string; linkText?: string; actionText?: string } | null>(null);
+  const usernameCheckId = useRef(0);
 
   const [unauthorizedDomain, setUnauthorizedDomain] = useState<string | null>(null);
 
   if (!isOpen) return null;
-
-  const handleGoogleLogin = async () => {
-    setLoading(true);
-    setError(null);
-    setErrorDetails(null);
-    setUnauthorizedDomain(null);
-    try {
-      await signInWithGoogle();
-      onSuccess();
-    } catch (err: any) {
-      console.error('[AuthModal] Google Sign-in error:', err);
-      const msg = err.message || '';
-      if (err.code === 'auth/unauthorized-domain') {
-        const domain = typeof window !== 'undefined' ? window.location.hostname : '';
-        setUnauthorizedDomain(domain);
-        setError(`Domain not authorized in Firebase Console yet: "${domain}". Add it under Authentication > Settings > Authorized domains.`);
-      } else if (msg.toLowerCase().includes('permission_denied')) {
-        setError('Realtime Database permission denied. Please verify rules in Firebase Console > Realtime Database.');
-        setErrorDetails({
-          title: 'Realtime Database Rules',
-          link: 'https://console.firebase.google.com/project/light-3dc69/database/data',
-          linkText: 'Check Realtime Database in Firebase Console',
-        });
-      } else if (err.code === 'auth/popup-closed-by-user') {
-        setError('Sign-in cancelled. Please try again.');
-      } else if (err.code === 'auth/popup-blocked') {
-        setError('Popup was blocked by your browser. Please allow popups for this site.');
-      } else {
-        setError(err.message || 'Failed to sign in with Google.');
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleGuestSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -65,6 +38,15 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onSuccess }) => {
     setErrorDetails(null);
 
     const cleanUsername = sanitizeUsername(guestUsername.trim() || guestName.trim());
+    if (!isValidUsername(cleanUsername)) {
+      setError('Your username must be 3-20 characters using lowercase letters, numbers, and underscores.');
+      return;
+    }
+    if (usernameAvailable === false) {
+      setError('That username is already taken. Please choose another.');
+      return;
+    }
+    setLoading(true);
     try {
       await signInAsGuest(guestName.trim(), cleanUsername);
       onSuccess();
@@ -94,6 +76,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onSuccess }) => {
 
   const handleCheckUsername = async (val: string) => {
     setGuestUsername(val);
+    setUsernameAvailable(null);
+    const checkId = ++usernameCheckId.current;
     const clean = sanitizeUsername(val);
     if (clean.length < 3) {
       setUsernameAvailable(null);
@@ -103,11 +87,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onSuccess }) => {
     setCheckingUsername(true);
     try {
       const avail = await isUsernameAvailable(clean);
-      setUsernameAvailable(avail);
+      if (checkId === usernameCheckId.current) setUsernameAvailable(avail);
     } catch (e) {
-      setUsernameAvailable(true);
+      if (checkId === usernameCheckId.current) setUsernameAvailable(true);
     } finally {
-      setCheckingUsername(false);
+      if (checkId === usernameCheckId.current) setCheckingUsername(false);
     }
   };
 
@@ -189,9 +173,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onSuccess }) => {
               {/* Google Sign-in */}
               <button
                 type="button"
-                onClick={handleGoogleLogin}
-                disabled={loading}
-                className="w-full py-2.5 px-4 bg-white dark:bg-[#1c2128] hover:bg-slate-50 dark:hover:bg-[#222730] border border-black/10 dark:border-white/10 rounded-xl text-slate-800 dark:text-slate-100 font-medium text-xs flex items-center justify-center gap-3 transition-colors shadow-xs disabled:opacity-50 cursor-pointer"
+                disabled
+                aria-describedby="google-signin-unavailable"
+                className="w-full py-2.5 px-4 bg-slate-100/80 dark:bg-[#1a1f27] border border-black/5 dark:border-white/5 rounded-xl text-slate-400 dark:text-slate-500 font-medium text-xs flex items-center justify-center gap-3 shadow-xs cursor-not-allowed"
               >
                 <svg className="w-4 h-4" viewBox="0 0 24 24">
                   <path
@@ -211,8 +195,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onSuccess }) => {
                     d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
                   />
                 </svg>
-                <span>{loading ? 'Connecting with Google...' : 'Continue with Google'}</span>
+                <span>Google Sign-In — Coming Soon</span>
               </button>
+              <p id="google-signin-unavailable" className="px-2 text-center text-[11px] leading-relaxed text-slate-500 dark:text-slate-400">
+                Google sign-in is temporarily unavailable. We're working on bringing it back soon.
+              </p>
 
               <div className="relative flex py-2 items-center">
                 <div className="flex-grow border-t border-black/5 dark:border-white/5" />
@@ -234,8 +221,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onSuccess }) => {
               </button>
 
               <p className="text-[11px] text-slate-400 text-center pt-2">
-                Guest accounts can link Google authentication anytime later from Settings.
+                Guest accounts are ready to use now. Google account linking will return soon.
               </p>
+              <AuthDiagnosticsPanel />
             </div>
           ) : (
             /* GUEST FORM */

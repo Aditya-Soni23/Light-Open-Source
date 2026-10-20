@@ -118,43 +118,65 @@ export class DesktopBridge {
   }
 
   /** Open a genuine, independently movable OS overlay window. */
-  public async openOverlay(mode: DesktopOverlayMode): Promise<boolean> {
-    if (!this.env.isTauri) return false;
-
-    try {
-      const { WebviewWindow } = await import('@tauri-apps/api/webviewWindow');
-      const label = mode === 'companion' ? 'companion' : 'xtreme-small';
-      const existing = await WebviewWindow.getByLabel(label);
-      if (existing) {
-        await existing.show();
-        await existing.setFocus();
-        return true;
-      }
-
-      const compact = mode === 'xtreme-small';
-      const overlay = new WebviewWindow(label, {
-        url: `/#/${mode}`,
-        title: compact ? 'LIGHT Xtreme Small' : 'LIGHT Companion',
-        width: compact ? 88 : 310,
-        height: compact ? 88 : 430,
-        minWidth: compact ? 56 : 250,
-        minHeight: compact ? 56 : 260,
-        resizable: !compact,
-        decorations: false,
-        transparent: true,
-        alwaysOnTop: true,
-        skipTaskbar: true,
-        center: false,
-      });
-      await new Promise<void>((resolve, reject) => {
-        overlay.once('tauri://created', () => resolve());
-        overlay.once('tauri://error', (event) => reject(new Error(String(event.payload))));
-      });
-      return true;
-    } catch (error) {
-      console.error('[DesktopBridge] Could not create overlay window:', error);
-      return false;
+  public async openOverlay(mode: DesktopOverlayMode): Promise<void> {
+    if (!this.env.isTauri) {
+      throw new Error('Native overlays are only available in the desktop app.');
     }
+
+    const diagnostic = (stage: string, detail?: unknown) =>
+      console.info('[LIGHT Overlay]', { mode, stage, href: window.location.href, detail });
+
+    diagnostic('requested');
+    const { WebviewWindow } = await import('@tauri-apps/api/webviewWindow');
+    const label = mode === 'companion' ? 'companion' : 'xtreme-small';
+    diagnostic('checking-existing-window', label);
+    const existing = await WebviewWindow.getByLabel(label);
+    if (existing) {
+      diagnostic('showing-existing-window', label);
+      await existing.show();
+      await existing.setFocus();
+      diagnostic('existing-window-visible', label);
+      return;
+    }
+
+    const compact = mode === 'xtreme-small';
+    // The packaged main window is deliberately served by tauri-plugin-localhost
+    // for Firebase OAuth. A root-relative Tauri URL (/#/...) resolves against
+    // Tauri's app protocol instead of that loopback server in a release build.
+    // Use the main window's full origin so secondary windows load the same app,
+    // route, storage, and BroadcastChannel namespace as the main window.
+    const overlayUrl = new URL(`/#/${mode}`, window.location.href).toString();
+    diagnostic('creating-window', { label, overlayUrl });
+    const overlay = new WebviewWindow(label, {
+      url: overlayUrl,
+      title: compact ? 'LIGHT Xtreme Small' : 'LIGHT Companion',
+      width: compact ? 88 : 310,
+      height: compact ? 88 : 430,
+      minWidth: compact ? 56 : 250,
+      minHeight: compact ? 56 : 260,
+      resizable: !compact,
+      decorations: false,
+      transparent: true,
+      alwaysOnTop: true,
+      skipTaskbar: true,
+      center: false,
+    });
+
+    await new Promise<void>((resolve, reject) => {
+      void overlay.once('tauri://created', () => {
+        diagnostic('created', label);
+        resolve();
+      });
+      void overlay.once('tauri://error', (event) => {
+        diagnostic('creation-failed', event.payload);
+        reject(new Error(String(event.payload)));
+      });
+    });
+    // Explicitly surface and focus a just-created native window. This removes
+    // any dependence on platform-specific default visibility in release builds.
+    await overlay.show();
+    await overlay.setFocus();
+    diagnostic('created-window-visible', label);
   }
 
   public async closeOverlay(mode: DesktopOverlayMode): Promise<void> {
@@ -171,6 +193,14 @@ export class DesktopBridge {
     await window?.show();
     await window?.unminimize();
     await window?.setFocus();
+  }
+
+  /** Hide the main window while a native companion overlay is active. */
+  public async hideMainWindow(): Promise<void> {
+    if (!this.env.isTauri) return;
+    const { WebviewWindow } = await import('@tauri-apps/api/webviewWindow');
+    const window = await WebviewWindow.getByLabel('main');
+    await window?.hide();
   }
 }
 

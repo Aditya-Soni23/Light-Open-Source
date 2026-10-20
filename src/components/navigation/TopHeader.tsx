@@ -69,7 +69,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
           <button
             onClick={onOpenUpgradeModal}
             className="hidden sm:flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] font-medium bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-500/20 hover:bg-amber-100 transition-colors cursor-pointer"
-            title="Guest session. Click to link Google account."
+            title="Guest account. Google account linking is coming soon."
           >
             <Shield className="w-3 h-3" />
             <span>Guest</span>

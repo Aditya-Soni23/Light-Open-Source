@@ -1,7 +1,5 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { ShieldCheck, AlertCircle, X } from 'lucide-react';
-import { auth } from '../../services/firebase';
-import { linkGuestToGoogle } from '../../services/auth';
 import { UserProfile } from '../../types';
 
 interface GuestUpgradeModalProps {
@@ -15,30 +13,7 @@ export const GuestUpgradeModal: React.FC<GuestUpgradeModalProps> = ({
   onClose,
   onUpgraded,
 }) => {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
   if (!isOpen) return null;
-
-  const handleUpgrade = async () => {
-    if (!auth.currentUser) return;
-    setLoading(true);
-    setError(null);
-    try {
-      const updated = await linkGuestToGoogle(auth.currentUser);
-      onUpgraded(updated);
-      onClose();
-    } catch (err: any) {
-      console.error('[GuestUpgrade] Upgrade error:', err);
-      if (err.code === 'auth/credential-already-in-use') {
-        setError('This Google account is already linked to another LIGHT profile. Please use a different Google account.');
-      } else {
-        setError(err.message || 'Failed to link Google account.');
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs select-none">
@@ -57,21 +32,19 @@ export const GuestUpgradeModal: React.FC<GuestUpgradeModalProps> = ({
           <div>
             <h3 className="font-semibold text-slate-900 dark:text-white text-sm">Protect Your Account</h3>
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              Upgrade your guest profile to permanent Google login
+              Google account linking
             </p>
           </div>
         </div>
 
         <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed mb-4">
-          Linking your Google account preserves your unique username, current friends, conversations, and squad voice rooms across any device or browser session.
+          Google account linking is temporarily unavailable while we prepare a reliable desktop sign-in experience. Your guest profile, friends, conversations, and voice rooms remain available here.
         </p>
 
-        {error && (
-          <div className="mb-4 p-3 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/60 flex items-start gap-2 text-xs text-rose-700 dark:text-rose-300">
-            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-rose-500" />
-            <span>{error}</span>
-          </div>
-        )}
+        <div className="mb-4 p-3 rounded-xl bg-sky-50 dark:bg-sky-950/30 border border-sky-100 dark:border-sky-900/50 flex items-start gap-2 text-xs text-sky-700 dark:text-sky-300">
+          <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-sky-500" />
+          <span>Google sign-in is temporarily unavailable. We're working on bringing it back soon.</span>
+        </div>
 
         <div className="flex items-center justify-end gap-2.5 pt-2">
           <button
@@ -81,13 +54,8 @@ export const GuestUpgradeModal: React.FC<GuestUpgradeModalProps> = ({
           >
             Cancel
           </button>
-          <button
-            type="button"
-            onClick={handleUpgrade}
-            disabled={loading}
-            className="px-4 py-2 bg-sky-500 hover:bg-sky-600 text-white font-medium text-xs rounded-xl flex items-center gap-2 transition-colors disabled:opacity-50 cursor-pointer shadow-xs"
-          >
-            {loading ? 'Linking Google Account...' : 'Link Google Account'}
+          <button type="button" disabled className="px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 font-medium text-xs rounded-xl cursor-not-allowed shadow-xs">
+            Google Linking — Coming Soon
           </button>
         </div>
       </div>

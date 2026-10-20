@@ -1,6 +1,7 @@
 import express, { Request, Response, NextFunction } from 'express';
 import dotenv from 'dotenv';
 import agoraTokenPkg from 'agora-token';
+import { createHash } from 'node:crypto';
 const { RtcTokenBuilder, RtcRole } = agoraTokenPkg;
 import { cert, getApps, initializeApp } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
@@ -9,6 +10,50 @@ dotenv.config();
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
+const MAX_SOURCE_ROOM_NAME_BYTES = 512;
+const MAX_AGORA_CHANNEL_NAME_BYTES = 64;
+const CHANNEL_PREFIX = 'light_';
+const FINGERPRINT_HEX_LENGTH = 24;
+const READABLE_PART_MAX_LENGTH =
+  MAX_AGORA_CHANNEL_NAME_BYTES - CHANNEL_PREFIX.length - 1 - FINGERPRINT_HEX_LENGTH;
+const CANONICAL_CHANNEL_NAME_PATTERN = new RegExp(
+  `^${CHANNEL_PREFIX}[a-zA-Z0-9_-]{1,${READABLE_PART_MAX_LENGTH}}_[a-f0-9]{${FINGERPRINT_HEX_LENGTH}}$`
+);
+
+function normalizeVoiceChannelName(roomKey: string): string {
+  const trimmedRoomKey = roomKey.trim();
+  if (!trimmedRoomKey) {
+    throw new Error('Voice room name is invalid: please choose a room with a name.');
+  }
+
+  if (Buffer.byteLength(trimmedRoomKey, 'utf8') > MAX_SOURCE_ROOM_NAME_BYTES) {
+    throw new Error('Voice room name is invalid: the room name is too long. Please choose a shorter room name.');
+  }
+
+  // The desktop client submits canonical names. Keeping them unchanged makes
+  // token signing and the subsequent Agora join target the exact same room.
+  if (CANONICAL_CHANNEL_NAME_PATTERN.test(trimmedRoomKey)) {
+    return trimmedRoomKey;
+  }
+
+  const fingerprint = createHash('sha256')
+    .update(trimmedRoomKey, 'utf8')
+    .digest('hex')
+    .slice(0, FINGERPRINT_HEX_LENGTH);
+  const readablePart = trimmedRoomKey
+    .normalize('NFKC')
+    .replace(/[^a-zA-Z0-9_-]/g, '_')
+    .replace(/_+/g, '_')
+    .replace(/^_+|_+$/g, '')
+    .slice(0, READABLE_PART_MAX_LENGTH) || 'room';
+  const channelName = `${CHANNEL_PREFIX}${readablePart}_${fingerprint}`;
+
+  if (Buffer.byteLength(channelName, 'utf8') > MAX_AGORA_CHANNEL_NAME_BYTES) {
+    throw new Error('Voice room name is invalid: the room name could not be made compatible with voice chat.');
+  }
+
+  return channelName;
+}
 
 app.use(express.json());
 
@@ -129,10 +174,11 @@ app.post('/api/agora/token', authenticateFirebaseUser, async (req: Authenticated
       return res.status(400).json({ error: 'Invalid channelName provided.' });
     }
 
-    // Validate and normalize channel name: safe characters only (alphanumeric, -, _)
-    const normalizedChannelName = channelName.trim().replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 64);
-    if (!normalizedChannelName) {
-      return res.status(400).json({ error: 'Invalid channelName format.' });
+    let normalizedChannelName: string;
+    try {
+      normalizedChannelName = normalizeVoiceChannelName(channelName);
+    } catch (error: any) {
+      return res.status(400).json({ error: error.message || 'Invalid channelName format.' });
     }
 
     const appId = process.env.AGORA_APP_ID || '8c3ee7f5209846b99763087d2cab533a';
