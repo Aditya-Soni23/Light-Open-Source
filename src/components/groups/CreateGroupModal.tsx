@@ -74,7 +74,7 @@ export const CreateGroupModal: React.FC<CreateGroupModalProps> = ({
         </button>
 
         <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 rounded-xl bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400 flex items-center justify-center shrink-0">
+          <div className="w-10 h-10 rounded-xl bg-accent-subtle dark:bg-accent-subtle text-accent dark:text-accent flex items-center justify-center shrink-0">
             <Layers className="w-5 h-5" />
           </div>
           <div>
@@ -103,7 +103,7 @@ export const CreateGroupModal: React.FC<CreateGroupModalProps> = ({
               placeholder="e.g. Apex Squad / Night Shift"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full px-3.5 py-2.5 bg-slate-100 dark:bg-[#1c2128] border border-black/10 dark:border-white/10 rounded-xl text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-sky-500 transition-colors shadow-xs"
+              className="w-full px-3.5 py-2.5 bg-slate-100 dark:bg-[#1c2128] border border-black/10 dark:border-white/10 rounded-xl text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-accent transition-colors shadow-xs"
               maxLength={40}
             />
           </div>
@@ -117,7 +117,7 @@ export const CreateGroupModal: React.FC<CreateGroupModalProps> = ({
               placeholder="Squad voice channel for gaming sessions"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full px-3.5 py-2.5 bg-slate-100 dark:bg-[#1c2128] border border-black/10 dark:border-white/10 rounded-xl text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-sky-500 transition-colors shadow-xs"
+              className="w-full px-3.5 py-2.5 bg-slate-100 dark:bg-[#1c2128] border border-black/10 dark:border-white/10 rounded-xl text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-accent transition-colors shadow-xs"
               maxLength={100}
             />
           </div>
@@ -164,7 +164,7 @@ export const CreateGroupModal: React.FC<CreateGroupModalProps> = ({
                       <div
                         className={`w-4 h-4 rounded flex items-center justify-center text-[10px] ${
                           isSelected
-                            ? 'bg-sky-500 text-white font-bold'
+                            ? 'bg-accent text-white font-bold'
                             : 'border border-slate-300 dark:border-slate-700'
                         }`}
                       >
@@ -188,7 +188,7 @@ export const CreateGroupModal: React.FC<CreateGroupModalProps> = ({
             <button
               type="submit"
               disabled={loading || !name.trim()}
-              className="px-4 py-2 bg-sky-500 hover:bg-sky-600 text-white font-medium text-xs rounded-xl flex items-center gap-1.5 transition-colors shadow-xs disabled:opacity-50 cursor-pointer"
+              className="px-4 py-2 bg-accent hover:bg-accent-hover text-white font-medium text-xs rounded-xl flex items-center gap-1.5 transition-colors shadow-xs disabled:opacity-50 cursor-pointer"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>{loading ? 'Creating...' : 'Create Squad'}</span>

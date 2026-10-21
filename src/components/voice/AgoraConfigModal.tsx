@@ -21,7 +21,7 @@ export const AgoraConfigModal: React.FC<AgoraConfigModalProps> = ({ isOpen, onCl
         </button>
 
         <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 rounded-xl bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400 flex items-center justify-center shrink-0">
+          <div className="w-10 h-10 rounded-xl bg-accent-subtle dark:bg-accent-subtle text-accent dark:text-accent flex items-center justify-center shrink-0">
             <KeyRound className="w-5 h-5" />
           </div>
           <div>
@@ -44,7 +44,7 @@ export const AgoraConfigModal: React.FC<AgoraConfigModalProps> = ({ isOpen, onCl
         <div className="space-y-3 text-xs text-slate-600 dark:text-slate-300">
           <div className="p-3 rounded-xl bg-slate-100 dark:bg-[#12151b] border border-black/5 dark:border-white/5 space-y-1">
             <div className="text-slate-400 uppercase font-mono text-[10px]">Your Agora App ID</div>
-            <div className="font-mono text-sky-600 dark:text-sky-400 break-all select-all font-semibold">
+            <div className="font-mono text-accent dark:text-accent break-all select-all font-semibold">
               {AGORA_APP_ID}
             </div>
           </div>
@@ -60,7 +60,7 @@ export const AgoraConfigModal: React.FC<AgoraConfigModalProps> = ({ isOpen, onCl
                   href="https://console.agora.io"
                   target="_blank"
                   rel="noreferrer"
-                  className="text-sky-600 dark:text-sky-400 underline inline-flex items-center gap-1"
+                  className="text-accent dark:text-accent underline inline-flex items-center gap-1"
                 >
                   Agora Console <ExternalLink className="w-3 h-3" />
                 </a>
@@ -75,7 +75,7 @@ export const AgoraConfigModal: React.FC<AgoraConfigModalProps> = ({ isOpen, onCl
                 Enable <strong>Primary Certificate</strong> and copy the generated certificate string.
               </li>
               <li>
-                Add to your backend environment: <code className="font-mono text-sky-600 dark:text-sky-400">AGORA_APP_CERTIFICATE=your_cert</code>.
+                Add to your backend environment: <code className="font-mono text-accent dark:text-accent">AGORA_APP_CERTIFICATE=your_cert</code>.
               </li>
             </ol>
           </div>

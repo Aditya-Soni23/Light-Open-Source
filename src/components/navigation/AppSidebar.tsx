@@ -91,7 +91,7 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
           title="Open Companion Mode (Ctrl+Shift+M)"
           className="w-9 h-9 rounded-xl flex items-center justify-center text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
         >
-          <Sparkles className="w-4 h-4 text-sky-500" />
+          <Sparkles className="w-4 h-4 text-accent" />
         </button>
 
         {/* Xtreme Small Launcher */}
@@ -101,7 +101,7 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
             title="Collapse to Xtreme Small (Logo only)"
             className="w-9 h-9 rounded-xl flex items-center justify-center text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
           >
-            <Shrink className="w-4 h-4 text-sky-500" />
+            <Shrink className="w-4 h-4 text-accent" />
           </button>
         )}
       </nav>

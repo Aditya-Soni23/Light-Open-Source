@@ -210,7 +210,7 @@ export const LightMiniCompanion: React.FC<LightMiniCompanionProps> = ({
               title={alwaysOnTop ? 'Always-on-top Enabled' : 'Always-on-top Disabled'}
               className={`p-1 rounded-md transition-colors ${
                 alwaysOnTop
-                  ? 'text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-950/40'
+                  ? 'text-accent dark:text-accent bg-accent-subtle dark:bg-accent-subtle'
                   : 'text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
               }`}
             >
@@ -221,7 +221,7 @@ export const LightMiniCompanion: React.FC<LightMiniCompanionProps> = ({
             <button
               onClick={onSwitchToXtremeSmall}
               title="Collapse to Xtreme Small (Logo only)"
-              className="p-1 rounded-md hover:bg-sky-50 dark:hover:bg-sky-950/40 text-sky-600 dark:text-sky-400 transition-colors flex items-center gap-0.5"
+              className="p-1 rounded-md hover:bg-accent-subtle dark:hover:bg-accent-subtle text-accent dark:text-accent transition-colors flex items-center gap-0.5"
             >
               <Shrink className="w-3 h-3" />
             </button>
@@ -256,7 +256,7 @@ export const LightMiniCompanion: React.FC<LightMiniCompanionProps> = ({
               max={100}
               value={opacity}
               onChange={(e) => handleOpacityChange(Number(e.target.value))}
-              className="w-28 h-1 accent-sky-500 bg-slate-300 dark:bg-slate-700 rounded-lg cursor-pointer"
+              className="w-28 h-1 accent-accent bg-slate-300 dark:bg-slate-700 rounded-lg cursor-pointer"
             />
           </div>
         )}
@@ -313,7 +313,7 @@ export const LightMiniCompanion: React.FC<LightMiniCompanionProps> = ({
                       key={p.uid}
                       className={`flex items-center justify-between p-1.5 rounded-xl transition-all ${
                         p.isSpeaking
-                          ? 'bg-sky-50 dark:bg-sky-950/40 border border-sky-300/40 dark:border-sky-500/30 text-sky-900 dark:text-sky-200'
+                          ? 'bg-accent-subtle dark:bg-accent-subtle border border-accent-border dark:border-accent/30 text-accent dark:text-accent'
                           : 'bg-slate-50 dark:bg-[#1c2128]/60 text-slate-700 dark:text-slate-300'
                       }`}
                     >
@@ -386,7 +386,7 @@ export const LightMiniCompanion: React.FC<LightMiniCompanionProps> = ({
           <button
             onClick={onOpenVoiceChat}
             disabled={!voiceState.isConnected}
-            className="no-drag w-full py-1.5 rounded-xl bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 text-xs font-medium hover:bg-sky-100 dark:hover:bg-sky-900/40 disabled:opacity-40 flex items-center justify-center gap-1.5"
+            className="no-drag w-full py-1.5 rounded-xl bg-accent-subtle dark:bg-accent-subtle text-accent dark:text-accent text-xs font-medium hover:bg-accent-subtle dark:hover:bg-accent/40 disabled:opacity-40 flex items-center justify-center gap-1.5"
           >
             <Radio className="w-3.5 h-3.5" /> Open current voice chat
           </button>
@@ -396,7 +396,7 @@ export const LightMiniCompanion: React.FC<LightMiniCompanionProps> = ({
             <span>Ctrl+Shift+M to toggle</span>
             <button
               onClick={onSwitchToXtremeSmall}
-              className="text-sky-600 dark:text-sky-400 hover:underline flex items-center gap-1 cursor-pointer"
+              className="text-accent dark:text-accent hover:underline flex items-center gap-1 cursor-pointer"
             >
               <span>Xtreme Small</span>
               <Shrink className="w-2.5 h-2.5" />

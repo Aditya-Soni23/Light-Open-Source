@@ -69,7 +69,7 @@ export const VoiceBar: React.FC<VoiceBarProps> = ({
 
           <div className="min-w-0">
             <div className="flex items-center gap-1.5">
-              <span className="text-xs font-semibold text-slate-900 dark:text-white group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors truncate">
+              <span className="text-xs font-semibold text-slate-900 dark:text-white group-hover:text-accent-hover dark:group-hover:text-accent transition-colors truncate">
                 {voiceState.groupName || 'Voice Channel'}
               </span>
               <span className="text-[10px] font-mono text-emerald-600 dark:text-emerald-400 font-medium">
@@ -154,7 +154,7 @@ export const VoiceBar: React.FC<VoiceBarProps> = ({
           className="px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 transition-colors flex items-center gap-1.5 text-xs font-medium cursor-pointer"
           title="Open Companion floating card"
         >
-          <Sparkles className="w-3 h-3 text-sky-500" />
+          <Sparkles className="w-3 h-3 text-accent" />
           <span className="hidden md:inline">Companion</span>
         </button>
 
@@ -165,7 +165,7 @@ export const VoiceBar: React.FC<VoiceBarProps> = ({
             className="px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 transition-colors flex items-center gap-1.5 text-xs font-medium cursor-pointer"
             title="Collapse to Xtreme Small (Logo only)"
           >
-            <Shrink className="w-3 h-3 text-sky-500" />
+            <Shrink className="w-3 h-3 text-accent" />
             <span className="hidden md:inline">Xtreme</span>
           </button>
         )}

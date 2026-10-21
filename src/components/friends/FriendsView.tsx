@@ -175,7 +175,7 @@ export const FriendsView: React.FC<FriendsViewProps> = ({
                 placeholder="Filter by name, @username, or game..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-4 py-2 bg-white dark:bg-[#161b22] border border-black/10 dark:border-white/10 rounded-xl text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-sky-500 transition-colors shadow-xs"
+                className="w-full pl-9 pr-4 py-2 bg-white dark:bg-[#161b22] border border-black/10 dark:border-white/10 rounded-xl text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-accent transition-colors shadow-xs"
               />
             </div>
 
@@ -195,7 +195,7 @@ export const FriendsView: React.FC<FriendsViewProps> = ({
                 {!searchQuery && (
                   <button
                     onClick={() => setIsAddModalOpen(true)}
-                    className="px-4 py-2 rounded-xl bg-sky-500 text-white font-medium text-xs hover:bg-sky-600 transition-colors cursor-pointer shadow-xs"
+                    className="px-4 py-2 rounded-xl bg-accent text-white font-medium text-xs hover:bg-accent-hover transition-colors cursor-pointer shadow-xs"
                   >
                     Add Your First Friend
                   </button>
@@ -223,7 +223,7 @@ export const FriendsView: React.FC<FriendsViewProps> = ({
                           @{friend.username}
                         </p>
                         {friend.currentGame && (
-                          <div className="flex items-center gap-1 text-[10px] text-sky-600 dark:text-sky-400 mt-0.5 truncate">
+                          <div className="flex items-center gap-1 text-[10px] text-accent dark:text-accent mt-0.5 truncate">
                             <Gamepad2 className="w-3 h-3 shrink-0" />
                             <span className="truncate">{friend.currentGame}</span>
                           </div>

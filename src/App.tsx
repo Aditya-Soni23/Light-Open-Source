@@ -392,7 +392,7 @@ export default function App() {
   if (authLoading) {
     return (
       <div className="h-screen w-screen light-app-shell flex flex-col items-center justify-center select-none transition-colors">
-        <div className="w-8 h-8 border-2 border-sky-500 border-t-transparent rounded-full animate-spin mb-3" />
+        <div className="w-8 h-8 border-2 border-accent border-t-transparent rounded-full animate-spin mb-3" />
         <p className="font-mono text-xs uppercase tracking-widest text-slate-400">
           LIGHT by DIAMOND · Initializing
         </p>
@@ -543,7 +543,7 @@ export default function App() {
                           </p>
                           <button
                             onClick={() => setIsCreateGroupModalOpen(true)}
-                            className="px-4 py-2 rounded-xl bg-sky-500 text-white font-medium text-xs hover:bg-sky-600 transition-colors shadow-xs"
+                            className="px-4 py-2 rounded-xl bg-accent text-white font-medium text-xs hover:bg-accent-hover transition-colors shadow-xs"
                           >
                             Create Group
                           </button>
@@ -590,7 +590,7 @@ export default function App() {
               <span className="text-slate-600 dark:text-slate-400">LIGHT in Xtreme Small</span>
               <button
                 onClick={handleExpandToFullApp}
-                className="text-sky-600 dark:text-sky-400 hover:underline font-medium cursor-pointer"
+                className="text-accent dark:text-accent hover:underline font-medium cursor-pointer"
               >
                 Expand to Full App
               </button>

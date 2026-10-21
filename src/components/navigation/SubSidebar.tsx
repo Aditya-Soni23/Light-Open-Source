@@ -99,7 +99,7 @@ export const SubSidebar: React.FC<SubSidebarProps> = ({
                       size="sm"
                     />
                     <div className="min-w-0">
-                      <p className="text-xs font-medium text-slate-900 dark:text-slate-100 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors truncate">
+                      <p className="text-xs font-medium text-slate-900 dark:text-slate-100 group-hover:text-accent-hover dark:group-hover:text-accent transition-colors truncate">
                         {friend.displayName}
                       </p>
                       <p className="text-[10px] text-slate-400 truncate">
@@ -135,11 +135,11 @@ export const SubSidebar: React.FC<SubSidebarProps> = ({
                     }}
                     className="w-full flex items-center gap-2 p-2 rounded-xl text-left hover:bg-white dark:hover:bg-[#1c2128] text-slate-700 dark:text-slate-300 transition-colors group cursor-pointer"
                   >
-                    <div className="w-6 h-6 rounded-lg bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400 flex items-center justify-center shrink-0 text-xs font-semibold">
+                    <div className="w-6 h-6 rounded-lg bg-accent-subtle dark:bg-accent-subtle text-accent dark:text-accent flex items-center justify-center shrink-0 text-xs font-semibold">
                       #
                     </div>
                     <div className="min-w-0">
-                      <p className="text-xs font-medium text-slate-900 dark:text-slate-100 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors truncate">
+                      <p className="text-xs font-medium text-slate-900 dark:text-slate-100 group-hover:text-accent-hover dark:group-hover:text-accent transition-colors truncate">
                         {g.name}
                       </p>
                       <p className="text-[10px] text-slate-400 truncate">
@@ -233,7 +233,7 @@ export const SubSidebar: React.FC<SubSidebarProps> = ({
                 <p className="text-xs text-slate-400 dark:text-slate-500 mb-3">No groups created yet.</p>
                 <button
                   onClick={onOpenCreateGroupModal}
-                  className="px-3 py-1.5 rounded-lg bg-sky-500 text-white font-medium text-xs hover:bg-sky-600 transition-colors shadow-xs"
+                  className="px-3 py-1.5 rounded-lg bg-accent text-white font-medium text-xs hover:bg-accent-hover transition-colors shadow-xs"
                 >
                   Create Squad
                 </button>
@@ -255,7 +255,7 @@ export const SubSidebar: React.FC<SubSidebarProps> = ({
                       <div
                         className={`w-7 h-7 rounded-lg flex items-center justify-center font-semibold text-xs shrink-0 ${
                           isActive
-                            ? 'bg-sky-500 text-white'
+                            ? 'bg-accent text-white'
                             : 'bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
                         }`}
                       >
@@ -271,7 +271,7 @@ export const SubSidebar: React.FC<SubSidebarProps> = ({
                       </div>
                     </div>
 
-                    <div className="w-5 h-5 rounded-full flex items-center justify-center text-slate-400 hover:text-sky-500">
+                    <div className="w-5 h-5 rounded-full flex items-center justify-center text-slate-400 hover:text-accent">
                       <Radio className="w-3.5 h-3.5" />
                     </div>
                   </button>

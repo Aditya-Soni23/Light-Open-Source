@@ -222,8 +222,10 @@ export const signInAsGuest = async (
   profileCreationInProgress = new Promise((resolve) => {
     finishProfileCreation = resolve;
   });
+  let createdUser: User | null = null;
   try {
     const result = await signInAnonymously(auth);
+    createdUser = result.user;
     const user = result.user;
 
     // Store the requested display name on the Firebase user as well. This
@@ -243,6 +245,7 @@ export const signInAsGuest = async (
   } catch (error) {
     // Do not leave a half-created anonymous session that the app would turn
     // into a generated guest account after the user chose a custom handle.
+    await createdUser?.delete().catch(() => undefined);
     if (auth.currentUser?.isAnonymous) {
       await firebaseSignOut(auth).catch(() => undefined);
     }
