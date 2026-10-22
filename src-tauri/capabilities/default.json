@@ -2,9 +2,15 @@
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
   "description": "Default capability for the LIGHT desktop window.",
-  "windows": ["main", "companion", "xtreme-small"],
+  "windows": [
+    "main",
+    "companion",
+    "xtreme-small"
+  ],
   "remote": {
-    "urls": ["http://localhost:49321/*"]
+    "urls": [
+      "http://localhost:49321/*"
+    ]
   },
   "permissions": [
     "core:default",
@@ -18,6 +24,7 @@
     "core:window:allow-set-always-on-top",
     "core:window:allow-set-size",
     "core:window:allow-start-dragging",
-    "updater:default"
+    "updater:default",
+    "notification:default"
   ]
 }
