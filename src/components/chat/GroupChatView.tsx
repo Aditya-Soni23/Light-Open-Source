@@ -113,7 +113,7 @@ export const GroupChatView: React.FC<GroupChatViewProps> = ({
               onClick={() => onJoinVoice(group.voiceChannelName, `${group.name} Voice`)}
               className="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 transition-colors flex items-center gap-1.5 text-xs font-medium cursor-pointer"
             >
-              <Radio className="w-3.5 h-3.5 text-sky-500" />
+              <Radio className="w-3.5 h-3.5 text-accent" />
               <span>Join Voice</span>
             </button>
 
@@ -122,7 +122,7 @@ export const GroupChatView: React.FC<GroupChatViewProps> = ({
               onClick={() => setShowMembers(!showMembers)}
               className={`p-1.5 rounded-lg border transition-colors ${
                 showMembers
-                  ? 'bg-slate-200 dark:bg-slate-800 border-black/10 dark:border-white/10 text-sky-600 dark:text-sky-400'
+                  ? 'bg-slate-200 dark:bg-slate-800 border-black/10 dark:border-white/10 text-accent dark:text-accent'
                   : 'bg-white/40 dark:bg-[#161b22]/40 border-black/5 dark:border-white/5 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
               }`}
               title="Toggle Member Roster"
@@ -145,7 +145,7 @@ export const GroupChatView: React.FC<GroupChatViewProps> = ({
         <div className="flex-1 overflow-y-auto p-6 space-y-4">
           {messages.length === 0 ? (
             <div className="text-center py-16">
-              <div className="w-12 h-12 rounded-2xl bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400 flex items-center justify-center mx-auto mb-3">
+              <div className="w-12 h-12 rounded-2xl bg-accent-subtle dark:bg-accent-subtle text-accent dark:text-accent flex items-center justify-center mx-auto mb-3">
                 <Users className="w-5 h-5" />
               </div>
               <h3 className="font-semibold text-slate-900 dark:text-white text-sm mb-1">
@@ -181,12 +181,12 @@ export const GroupChatView: React.FC<GroupChatViewProps> = ({
                   <div
                     className={`max-w-[70%] rounded-2xl px-3.5 py-2 text-xs leading-relaxed ${
                       isMe
-                        ? 'bg-sky-500 text-white font-medium rounded-tr-xs shadow-xs'
+                        ? 'bg-accent text-white font-medium rounded-tr-xs shadow-xs'
                         : 'bg-white dark:bg-[#1c2128] text-slate-900 dark:text-slate-100 rounded-tl-xs border border-black/5 dark:border-white/5 shadow-xs'
                     }`}
                   >
                     {!isMe && !isSequential && (
-                      <div className="font-medium text-[11px] text-sky-600 dark:text-sky-400 mb-0.5">
+                      <div className="font-medium text-[11px] text-accent dark:text-accent mb-0.5">
                         {msg.senderDisplayName}
                       </div>
                     )}
@@ -211,7 +211,7 @@ export const GroupChatView: React.FC<GroupChatViewProps> = ({
           onSubmit={handleSendMessage}
           className="p-3.5 light-surface light-divider border-t shrink-0"
         >
-          <div className="flex items-center gap-2 bg-slate-100 dark:bg-[#1c2128] border border-black/5 dark:border-white/5 focus-within:border-sky-500 rounded-2xl px-3.5 py-2 transition-colors shadow-xs">
+          <div className="flex items-center gap-2 bg-slate-100 dark:bg-[#1c2128] border border-black/5 dark:border-white/5 focus-within:border-accent rounded-2xl px-3.5 py-2 transition-colors shadow-xs">
             <input
               type="text"
               placeholder={`Message #${group.name}...`}
@@ -222,7 +222,7 @@ export const GroupChatView: React.FC<GroupChatViewProps> = ({
             <button
               type="submit"
               disabled={!inputText.trim() || sending}
-              className="w-7 h-7 rounded-xl bg-sky-500 hover:bg-sky-600 text-white flex items-center justify-center transition-colors disabled:opacity-40 cursor-pointer shrink-0 shadow-xs"
+              className="w-7 h-7 rounded-xl bg-accent hover:bg-accent-hover text-white flex items-center justify-center transition-colors disabled:opacity-40 cursor-pointer shrink-0 shadow-xs"
             >
               <Send className="w-3 h-3" />
             </button>
@@ -246,7 +246,7 @@ export const GroupChatView: React.FC<GroupChatViewProps> = ({
                 onClick={() => setShowInviteDropdown(!showInviteDropdown)}
                 className="w-full py-1.5 px-2.5 rounded-xl border border-black/10 dark:border-white/10 hover:border-black/20 text-xs font-medium text-slate-700 dark:text-slate-300 flex items-center justify-center gap-1.5 transition-colors cursor-pointer bg-white/60 dark:bg-[#1c2128]/60 shadow-xs"
               >
-                <Plus className="w-3.5 h-3.5 text-sky-500" />
+                <Plus className="w-3.5 h-3.5 text-accent" />
                 <span>Add Squad Member</span>
               </button>
 

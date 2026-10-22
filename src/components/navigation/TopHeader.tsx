@@ -67,7 +67,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
       {/* Center zone: Playing status or quiet product marker */}
       <div className="hidden md:flex items-center gap-2">
         {userProfile?.currentGame ? (
-          <div className="flex items-center gap-1.5 text-xs text-sky-700 dark:text-sky-400 bg-sky-50 dark:bg-sky-950/30 border border-sky-200 dark:border-sky-800/30 px-2 py-0.5 rounded-md">
+          <div className="flex items-center gap-1.5 text-xs text-accent dark:text-accent bg-accent-subtle dark:bg-accent-subtle border border-accent-border dark:border-accent-border px-2 py-0.5 rounded-md">
             <Gamepad2 className="w-3.5 h-3.5" />
             <span className="font-medium">Playing:</span>
             <span className="text-slate-900 dark:text-slate-200">{userProfile.currentGame}</span>
@@ -93,7 +93,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
           {prefs.theme === 'light' ? (
             <Sun className="w-3.5 h-3.5 text-amber-500" />
           ) : prefs.theme === 'dark' ? (
-            <Moon className="w-3.5 h-3.5 text-sky-400" />
+            <Moon className="w-3.5 h-3.5 text-accent" />
           ) : (
             <Laptop className="w-3.5 h-3.5" />
           )}
@@ -107,7 +107,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
             title="Launch Floating Companion Mode"
             className="hidden sm:flex items-center gap-1 text-[11px] font-medium text-slate-600 dark:text-slate-300 light-icon-button px-2 py-1 cursor-pointer"
           >
-            <Sparkles className="w-3 h-3 text-sky-500" />
+            <Sparkles className="w-3 h-3 text-accent" />
             <span>Companion</span>
           </button>
         )}
@@ -120,7 +120,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
             title="Collapse to Xtreme Small (Logo only)"
             className="hidden sm:flex items-center gap-1 text-[11px] font-medium text-slate-600 dark:text-slate-300 light-icon-button px-2 py-1 cursor-pointer"
           >
-            <Shrink className="w-3 h-3 text-sky-500" />
+            <Shrink className="w-3 h-3 text-accent" />
             <span>Xtreme Small</span>
           </button>
         )}

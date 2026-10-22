@@ -67,7 +67,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
             onClick={onOpenMiniCompanion}
             className="px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-900 dark:text-white font-medium text-xs flex items-center gap-2 transition-colors cursor-pointer border border-black/5 dark:border-white/5"
           >
-            <Sparkles className="w-3.5 h-3.5 text-sky-500" />
+            <Sparkles className="w-3.5 h-3.5 text-accent" />
             <span>Companion Mode</span>
           </button>
 
@@ -76,7 +76,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
               onClick={onOpenXtremeSmall}
               className="px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-900 dark:text-white font-medium text-xs flex items-center gap-2 transition-colors cursor-pointer border border-black/5 dark:border-white/5"
             >
-              <Shrink className="w-3.5 h-3.5 text-sky-500" />
+              <Shrink className="w-3.5 h-3.5 text-accent" />
               <span>Xtreme Small</span>
             </button>
           )}
@@ -126,7 +126,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
                   >
                     <div>
                       <div className="flex items-center justify-between mb-2">
-                        <span className="w-7 h-7 rounded-lg bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400 flex items-center justify-center font-semibold text-xs">
+                        <span className="w-7 h-7 rounded-lg bg-accent-subtle dark:bg-accent-subtle text-accent dark:text-accent flex items-center justify-center font-semibold text-xs">
                           #
                         </span>
                         <span className="text-[10px] font-mono text-slate-400">
@@ -148,7 +148,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
                         onClick={() => onJoinVoice(group.voiceChannelName, `${group.name} Voice`)}
                         className="flex-1 py-1.5 px-3 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 text-xs font-medium flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
                       >
-                        <Radio className="w-3.5 h-3.5 text-sky-500" />
+                        <Radio className="w-3.5 h-3.5 text-accent" />
                         <span>Join Voice</span>
                       </button>
                       <button
@@ -173,7 +173,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
             </h3>
             <button
               onClick={onNavigateToFriends}
-              className="text-xs text-sky-600 dark:text-sky-400 hover:underline font-medium cursor-pointer"
+              className="text-xs text-accent dark:text-accent hover:underline font-medium cursor-pointer"
             >
               View All
             </button>

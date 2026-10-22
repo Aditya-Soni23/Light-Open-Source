@@ -57,7 +57,7 @@ export const AddFriendModal: React.FC<AddFriendModalProps> = ({
         </button>
 
         <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 rounded-xl bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400 flex items-center justify-center shrink-0">
+          <div className="w-10 h-10 rounded-xl bg-accent-subtle dark:bg-accent-subtle text-accent dark:text-accent flex items-center justify-center shrink-0">
             <UserPlus className="w-5 h-5" />
           </div>
           <div>
@@ -89,11 +89,11 @@ export const AddFriendModal: React.FC<AddFriendModalProps> = ({
                 placeholder="exact_username"
                 value={usernameInput}
                 onChange={(e) => setUsernameInput(e.target.value)}
-                className="w-full pl-8 pr-4 py-2.5 bg-slate-100 dark:bg-[#1c2128] border border-black/10 dark:border-white/10 rounded-xl text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-sky-500 font-mono transition-colors shadow-xs"
+                className="w-full pl-8 pr-4 py-2.5 bg-slate-100 dark:bg-[#1c2128] border border-black/10 dark:border-white/10 rounded-xl text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-accent font-mono transition-colors shadow-xs"
               />
             </div>
             <p className="text-[11px] text-slate-400 mt-1.5">
-              Your own username is <span className="text-sky-600 dark:text-sky-400 font-mono">@{currentUser.username}</span>. Share it with friends to connect.
+              Your own username is <span className="text-accent dark:text-accent font-mono">@{currentUser.username}</span>. Share it with friends to connect.
             </p>
           </div>
 
@@ -108,7 +108,7 @@ export const AddFriendModal: React.FC<AddFriendModalProps> = ({
             <button
               type="submit"
               disabled={loading || !usernameInput.trim()}
-              className="px-4 py-2 bg-sky-500 hover:bg-sky-600 text-white font-medium text-xs rounded-xl flex items-center gap-1.5 transition-colors shadow-xs disabled:opacity-50 cursor-pointer"
+              className="px-4 py-2 bg-accent hover:bg-accent-hover text-white font-medium text-xs rounded-xl flex items-center gap-1.5 transition-colors shadow-xs disabled:opacity-50 cursor-pointer"
             >
               <UserPlus className="w-3.5 h-3.5" />
               <span>{loading ? 'Sending...' : 'Send Request'}</span>

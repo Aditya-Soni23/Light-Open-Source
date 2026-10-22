@@ -31,7 +31,7 @@ export const AuthDiagnosticsPanel: React.FC = () => {
       <button
         type="button"
         onClick={() => setIsOpen(true)}
-        className="mt-4 mx-auto flex items-center gap-1.5 text-[10px] text-slate-400 hover:text-sky-600 dark:hover:text-sky-400 transition-colors cursor-pointer"
+        className="mt-4 mx-auto flex items-center gap-1.5 text-[10px] text-slate-400 hover:text-accent-hover dark:hover:text-accent transition-colors cursor-pointer"
       >
         <Clipboard className="w-3 h-3" />
         Sign-in diagnostics
@@ -58,7 +58,7 @@ export const AuthDiagnosticsPanel: React.FC = () => {
 
             <div className="mt-4 flex justify-end gap-2">
               <button type="button" onClick={() => setIsOpen(false)} className="px-3 py-2 rounded-lg text-xs text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 cursor-pointer">Close</button>
-              <button type="button" onClick={() => void copyLogs()} className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-sky-500 hover:bg-sky-600 text-white text-xs font-medium cursor-pointer">
+              <button type="button" onClick={() => void copyLogs()} className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-accent hover:bg-accent-hover text-white text-xs font-medium cursor-pointer">
                 <Copy className="w-3.5 h-3.5" />
                 {copied ? 'Copied' : 'Copy Logs'}
               </button>

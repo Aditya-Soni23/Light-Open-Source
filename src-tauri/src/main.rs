@@ -20,6 +20,9 @@ fn show_main_window(app: &tauri::AppHandle) {
 
 fn main() {
   tauri::Builder::default()
+    .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
+      show_main_window(app);
+    }))
     // Firebase Auth only supports OAuth from http(s) origins. In a packaged
     // Tauri app the default `tauri.localhost` origin is rejected, so serve the
     // bundled assets from a real loopback origin instead.

@@ -70,7 +70,7 @@ export const UpdateManager: React.FC = () => {
   return (
     <div className="fixed right-5 bottom-5 z-[70] w-80 rounded-2xl light-surface light-divider border p-4 shadow-xl">
       <div className="flex items-start gap-3">
-        <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-sky-50 text-sky-600 dark:bg-sky-950/40 dark:text-sky-400">
+        <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-accent-subtle text-accent dark:bg-accent-subtle dark:text-accent">
           <RefreshCw className={`h-4 w-4 ${state === 'downloading' ? 'animate-spin' : ''}`} />
         </div>
         <div className="min-w-0 flex-1">
@@ -87,7 +87,7 @@ export const UpdateManager: React.FC = () => {
         </div>
         {state !== 'downloading' && <button type="button" onClick={() => setIsDismissed(true)} className="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200" aria-label="Dismiss update"><X className="h-4 w-4" /></button>}
       </div>
-      {state === 'available' && <button type="button" onClick={() => void installUpdate()} className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-sky-500 px-3 py-2 text-xs font-medium text-white hover:bg-sky-600"><Download className="h-3.5 w-3.5" />Install update</button>}
+      {state === 'available' && <button type="button" onClick={() => void installUpdate()} className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-accent px-3 py-2 text-xs font-medium text-white hover:bg-accent-hover"><Download className="h-3.5 w-3.5" />Install update</button>}
       {state === 'error' && <button type="button" onClick={() => void installUpdate()} className="mt-3 w-full rounded-xl bg-slate-100 px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-200">Try again</button>}
     </div>
   );

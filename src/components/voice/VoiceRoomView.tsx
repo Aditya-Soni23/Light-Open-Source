@@ -118,7 +118,7 @@ export const VoiceRoomView: React.FC<VoiceRoomViewProps> = ({
             onClick={onOpenMiniCompanion}
             className="px-3.5 py-1.5 rounded-xl bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer"
           >
-            <Sparkles className="w-3.5 h-3.5 text-sky-500" />
+            <Sparkles className="w-3.5 h-3.5 text-accent" />
             <span>Launch Companion</span>
           </button>
         </div>
@@ -134,7 +134,7 @@ export const VoiceRoomView: React.FC<VoiceRoomViewProps> = ({
                 key={p.uid}
                 className={`relative rounded-2xl p-6 flex flex-col items-center justify-center border transition-all duration-150 ${
                   p.isSpeaking
-                    ? 'bg-white dark:bg-[#161b22] border-sky-400 ring-2 ring-sky-500/20 shadow-md'
+                    ? 'bg-white dark:bg-[#161b22] border-accent ring-2 ring-accent/20 shadow-md'
                     : 'bg-white/80 dark:bg-[#161b22]/70 border-black/5 dark:border-white/5 shadow-xs'
                 }`}
               >
@@ -163,7 +163,7 @@ export const VoiceRoomView: React.FC<VoiceRoomViewProps> = ({
                 {/* Voice Volume Meter */}
                 <div className="w-20 h-1 bg-slate-200 dark:bg-slate-800 rounded-full mt-3 overflow-hidden">
                   <div
-                    className="h-full bg-sky-500 transition-all duration-75"
+                    className="h-full bg-accent transition-all duration-75"
                     style={{ width: `${Math.min(100, (p.audioLevel || 0) * 2)}%` }}
                   />
                 </div>
@@ -181,7 +181,7 @@ export const VoiceRoomView: React.FC<VoiceRoomViewProps> = ({
             <select
               value={selectedMicId}
               onChange={(e) => handleMicSelect(e.target.value)}
-              className="bg-white dark:bg-[#161b22] border border-black/10 dark:border-white/10 text-slate-800 dark:text-slate-200 text-xs rounded-xl px-3 py-1.5 focus:outline-none focus:border-sky-500"
+              className="bg-white dark:bg-[#161b22] border border-black/10 dark:border-white/10 text-slate-800 dark:text-slate-200 text-xs rounded-xl px-3 py-1.5 focus:outline-none focus:border-accent"
             >
               {microphones.map((m) => (
                 <option key={m.deviceId} value={m.deviceId}>
